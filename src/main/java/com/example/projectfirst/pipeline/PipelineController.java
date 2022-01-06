@@ -27,7 +27,7 @@ public class PipelineController {
 
     @PutMapping("/pipelines/{id}")
     public PipelineCollection putPipeline(@RequestBody String yaml, @PathVariable(value="id") String id){
-        return pipelineService.UpdatePipeline(yaml,id);
+        return pipelineService.updatePipeline(yaml,id);
     }
 
     @DeleteMapping("/pipelines/{id}")

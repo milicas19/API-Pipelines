@@ -1,4 +1,4 @@
-package com.example.projectfirst.pipeline;
+package com.example.projectfirst.connector;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class PipelineCollection {
+public class ConnectorCollection {
     @Id
     private String id;
     private String ymlFile;
