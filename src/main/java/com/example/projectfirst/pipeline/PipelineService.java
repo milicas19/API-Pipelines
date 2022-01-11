@@ -1,16 +1,14 @@
 package com.example.projectfirst.pipeline;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 public class PipelineService {
@@ -22,9 +20,23 @@ public class PipelineService {
     }
 
     public String savePipeline(String yaml) {
-        PipelineCollection pipeline = new PipelineCollection(yaml, LocalDateTime.now(), LocalDateTime.now());
-        pipelineRepository.save(pipeline);
-        return "Successefully saved!";
+        // YAML to POJO
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+
+        try {
+            Map<String, Pipeline> pipelineMap = objectMapper.readValue(yaml,
+                    new TypeReference<Map<String, Pipeline>>(){});
+            Pipeline pipe = pipelineMap.get("pipeline");
+            if(pipelineRepository.existsById(pipe.getId())){
+                return "Pipeline with that id already exists!";
+            }
+            PipelineCollection pipeline = new PipelineCollection(pipe.getId(), yaml, LocalDateTime.now(), LocalDateTime.now());
+            pipelineRepository.save(pipeline);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return e.getMessage();
+        }
+        return "Successfully saved!";
     }
 
     public PipelineCollection fetchPipeline(String id) {
@@ -35,12 +47,12 @@ public class PipelineService {
     public String deletePipeline(String id) {
         if(pipelineRepository.existsById(id)){
             pipelineRepository.deleteById(id);
-            return "Successefully deleted!";
+            return "Successfully deleted!";
         }
         throw new PipelineNotFoundException(id);
     }
 
-    public PipelineCollection UpdatePipeline(String yaml, String id) {
+    public PipelineCollection updatePipeline(String yaml, String id) {
         return pipelineRepository.findById(id)
                 .map(pipelineCollection -> {
                     pipelineCollection.setYmlFile(yaml);
