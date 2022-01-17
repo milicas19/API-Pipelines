@@ -3,6 +3,7 @@ package com.example.projectfirst.connector;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
@@ -62,5 +63,9 @@ public class ConnectorService {
             return "Successfully deleted!";
         }
         throw new ConnectorNotFoundException(id);
+    }
+
+    public void deleteConnectors() {
+        connectorRepository.deleteAll();
     }
 }

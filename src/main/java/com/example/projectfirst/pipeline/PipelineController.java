@@ -34,4 +34,9 @@ public class PipelineController {
     public String deletePipeline(@PathVariable(value="id") String id){
         return pipelineService.deletePipeline(id);
     }
+
+    @DeleteMapping("/pipelines")
+    public void deletePipelines(){
+        pipelineService.deletePipelines();
+    }
 }

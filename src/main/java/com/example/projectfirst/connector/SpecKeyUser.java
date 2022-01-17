@@ -10,8 +10,11 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
-@JsonTypeName("NAME_PASS")
-public class SpecNamePass extends Spec{
+@JsonTypeName("API_KEY_USER")
+public class SpecKeyUser extends Spec{
+    String keyHeaderName;
+    String key;
+    String userHeaderName;
     String username;
     String password;
 }

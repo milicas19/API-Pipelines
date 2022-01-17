@@ -2,14 +2,14 @@ package com.example.projectfirst.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
 @Value
 @Jacksonized
-@SuperBuilder
-@EqualsAndHashCode(callSuper = true)
+@Builder
 @JsonTypeName("API_GET")
-public class SpecGet extends Spec{
+public class SpecGet implements Spec{
     String output;
+    String url;
+    String connectorID;
 }

@@ -13,4 +13,5 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder
 @JsonTypeName("NO_AUTH")
 public class Spec {
+    String host;
 }

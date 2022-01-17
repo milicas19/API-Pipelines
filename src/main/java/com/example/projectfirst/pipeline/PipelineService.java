@@ -3,6 +3,8 @@ package com.example.projectfirst.pipeline;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import lombok.AllArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
@@ -19,29 +21,29 @@ public class PipelineService {
         return pipelineRepository.findAll();
     }
 
+    public PipelineCollection fetchPipeline(String id) {
+        return pipelineRepository.findById(id)
+                .orElseThrow(() -> new PipelineNotFoundException(id));
+    }
+
     public String savePipeline(String yaml) {
         // YAML to POJO
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
         try {
             Map<String, Pipeline> pipelineMap = objectMapper.readValue(yaml,
-                    new TypeReference<Map<String, Pipeline>>(){});
+                    new TypeReference<>(){});
             Pipeline pipe = pipelineMap.get("pipeline");
             if(pipelineRepository.existsById(pipe.getId())){
                 return "Pipeline with that id already exists!";
             }
-            PipelineCollection pipeline = new PipelineCollection(pipe.getId(), yaml, LocalDateTime.now(), LocalDateTime.now());
+            PipelineCollection pipeline = new PipelineCollection(pipe.getId(),yaml, LocalDateTime.now(), LocalDateTime.now());
             pipelineRepository.save(pipeline);
         } catch (IOException e) {
             e.printStackTrace();
             return e.getMessage();
         }
         return "Successfully saved!";
-    }
-
-    public PipelineCollection fetchPipeline(String id) {
-        return pipelineRepository.findById(id)
-                .orElseThrow(() -> new PipelineNotFoundException(id));
     }
 
     public String deletePipeline(String id) {
@@ -60,5 +62,9 @@ public class PipelineService {
                     return pipelineRepository.save(pipelineCollection);
                 })
                 .orElseThrow(() -> new PipelineNotFoundException(id));
+    }
+
+    public void deletePipelines() {
+        pipelineRepository.deleteAll();
     }
 }

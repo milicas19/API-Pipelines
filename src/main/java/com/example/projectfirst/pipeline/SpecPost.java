@@ -2,14 +2,14 @@ package com.example.projectfirst.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
 @Value
 @Jacksonized
-@SuperBuilder
-@EqualsAndHashCode(callSuper = true)
+@Builder
 @JsonTypeName("API_POST")
-public class SpecPost extends Spec{
-    String value;
+public class SpecPost implements Spec{
+    String body;
+    String url;
+    String connectorID;
 }

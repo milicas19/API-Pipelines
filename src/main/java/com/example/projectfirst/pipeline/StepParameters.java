@@ -2,14 +2,13 @@ package com.example.projectfirst.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.Value;
-import lombok.experimental.SuperBuilder;
+import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
 @Value
 @Jacksonized
-@SuperBuilder
-public class Step {
+@Builder
+public class StepParameters {
     String name;
     String type;
     @JsonTypeInfo(

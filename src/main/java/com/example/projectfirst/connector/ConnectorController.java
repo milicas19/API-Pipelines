@@ -34,4 +34,9 @@ public class ConnectorController {
     public String deleteConnector(@PathVariable(value="id") String id){
         return connectorService.deleteConnector(id);
     }
+
+    @DeleteMapping("/connectors")
+    public void deleteConnectors(){
+        connectorService.deleteConnectors();
+    }
 }

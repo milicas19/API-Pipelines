@@ -1,7 +1,5 @@
 package com.example.projectfirst.connector;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Value;
@@ -22,7 +20,8 @@ public class Connector {
     @JsonSubTypes({
             @JsonSubTypes.Type(value = Spec.class, name = "NO_AUTH"),
             @JsonSubTypes.Type(value = SpecKey.class, name = "API_KEY"),
-            @JsonSubTypes.Type(value = SpecNamePass.class, name = "NAME_PASS")
+            @JsonSubTypes.Type(value = SpecUser.class, name = "API_USER"),
+            @JsonSubTypes.Type(value = SpecKeyUser.class, name = "API_KEY_USER")
     })
     Spec spec;
 }

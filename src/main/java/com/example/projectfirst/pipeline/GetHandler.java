@@ -1,0 +1,54 @@
+package com.example.projectfirst.pipeline;
+
+import com.example.projectfirst.connector.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.squareup.okhttp.*;
+import java.io.IOException;
+import java.util.Map;
+
+
+public class GetHandler implements StepHandler {
+
+    public Response execute(StepParameters stepParameters, ConnectorService connectorService) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        String connectorYml = connectorService.fetchConnector(stepParameters.getSpec().getConnectorID()).getYmlFile();
+
+        Map<String, Connector> connectorMap = objectMapper.readValue(connectorYml,
+                new TypeReference<>(){});
+        Connector connector = connectorMap.get("connector");
+
+        OkHttpClient client = new OkHttpClient();
+        Request.Builder requestBuilder = new Request.Builder().get();
+        requestBuilder
+                .url(stepParameters.getSpec().getUrl())
+                .addHeader("host", connector.getSpec().getHost());
+
+        switch (connector.getType()){
+            case "API_KEY":
+                requestBuilder.addHeader(((SpecKey) connector.getSpec()).getKeyHeaderName(),
+                        ((SpecKey) connector.getSpec()).getKey());
+                break;
+            case "API_USER":
+                requestBuilder.addHeader(((SpecUser)connector.getSpec()).getUserHeaderName(),
+                        Credentials.basic(((SpecUser)connector.getSpec()).getUsername(),
+                                                                ((SpecUser)connector.getSpec()).getPassword()));
+                break;
+            case "API_USER_KEY":
+                requestBuilder
+                        .addHeader(((SpecKeyUser) connector.getSpec()).getKeyHeaderName(),
+                        ((SpecKeyUser) connector.getSpec()).getKey())
+                        .addHeader(((SpecKeyUser)connector.getSpec()).getUserHeaderName(),
+                                Credentials.basic(((SpecKeyUser)connector.getSpec()).getUsername(),
+                                        ((SpecKeyUser)connector.getSpec()).getPassword()));
+        }
+
+        Request request = requestBuilder.build();
+        Call call = client.newCall(request);
+        Response response = call.execute();
+
+        return response;
+
+    }
+}
