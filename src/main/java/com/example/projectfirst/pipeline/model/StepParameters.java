@@ -1,5 +1,8 @@
-package com.example.projectfirst.pipeline;
+package com.example.projectfirst.pipeline.model;
 
+import com.example.projectfirst.pipeline.model.Spec;
+import com.example.projectfirst.pipeline.model.SpecGet;
+import com.example.projectfirst.pipeline.model.SpecPost;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.*;

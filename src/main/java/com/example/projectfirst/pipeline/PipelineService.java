@@ -1,10 +1,10 @@
 package com.example.projectfirst.pipeline;
 
+import com.example.projectfirst.pipeline.exception.PipelineNotFoundException;
+import com.example.projectfirst.pipeline.model.Pipeline;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import lombok.AllArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class PipelineService {
+public class PipelineService implements PipelineInterface{
     @Autowired
     private PipelineRepository pipelineRepository;
 

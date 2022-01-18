@@ -1,6 +1,6 @@
-package com.example.projectfirst.pipelineExecution;
+package com.example.projectfirst.pipelineExecution.services;
 
-import com.example.projectfirst.pipeline.StepParameters;
+import com.example.projectfirst.pipeline.model.StepParameters;
 import org.springframework.stereotype.Service;
 
 @Service

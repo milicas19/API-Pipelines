@@ -1,4 +1,4 @@
-package com.example.projectfirst.pipeline;
+package com.example.projectfirst.pipeline.model;
 
 public interface Spec {
     String getUrl();

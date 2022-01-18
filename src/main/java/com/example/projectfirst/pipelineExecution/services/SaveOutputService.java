@@ -1,5 +1,9 @@
-package com.example.projectfirst.pipelineExecution;
+package com.example.projectfirst.pipelineExecution.services;
 
+import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
+import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
+import com.example.projectfirst.pipelineExecution.exception.PipelineExecutionNotFoundException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +19,15 @@ public class SaveOutputService {
         Optional<PipelineExecutionCollection> pipelineExecution =
                 pipelineExecutionRepository.findById(pipelineExeId);
 
+        if(pipelineExecution.isEmpty())
+            throw new PipelineExecutionNotFoundException(pipelineExeId);
+
+        JSONObject json = new JSONObject(response);
+        System.out.println(json.toString(4));
+
         HashMap<String, String> output = pipelineExecution.get().getOutput();
-        output.put(name, response);
+        output.put(name, json.toString(4));
+
         pipelineExecution.get().setOutput(output);
 
         pipelineExecution.get().setState("running");

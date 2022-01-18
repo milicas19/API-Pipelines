@@ -1,4 +1,4 @@
-package com.example.projectfirst.connector;
+package com.example.projectfirst.connector.model;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

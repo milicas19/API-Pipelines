@@ -1,6 +1,6 @@
 package com.example.projectfirst.pipelineExecution;
 
-import com.example.projectfirst.pipeline.StepParameters;
+import com.example.projectfirst.pipeline.model.StepParameters;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import java.time.LocalDateTime;

@@ -1,6 +1,5 @@
-package com.example.projectfirst.pipelineExecution;
+package com.example.projectfirst.pipeline.exception;
 
-import com.example.projectfirst.pipeline.PipelineNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -8,11 +7,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
-public class PipelineExecutionNotFoundAdvice {
+public class PipelineNotFoundAdvice {
     @ResponseBody
-    @ExceptionHandler(PipelineExecutionNotFoundException.class)
+    @ExceptionHandler(PipelineNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    String pipelineExecutionNotFoundHandler(PipelineExecutionNotFoundException ex) {
+    String pipelineNotFoundHandler(PipelineNotFoundException ex) {
         return ex.getMessage();
     }
 }

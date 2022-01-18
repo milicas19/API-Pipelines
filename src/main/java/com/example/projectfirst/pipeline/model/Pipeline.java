@@ -1,4 +1,4 @@
-package com.example.projectfirst.pipeline;
+package com.example.projectfirst.pipeline.model;
 
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;

@@ -1,4 +1,4 @@
-package com.example.projectfirst.pipeline;
+package com.example.projectfirst.connector.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
-public class PipelineNotFoundAdvice {
+public class ConnectorNotFoundAdvice {
     @ResponseBody
-    @ExceptionHandler(PipelineNotFoundException.class)
+    @ExceptionHandler(ConnectorNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    String pipelineNotFoundHandler(PipelineNotFoundException ex) {
+    String connectorNotFoundHandler(ConnectorNotFoundException ex) {
         return ex.getMessage();
     }
 }

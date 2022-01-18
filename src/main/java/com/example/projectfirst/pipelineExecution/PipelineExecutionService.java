@@ -1,18 +1,24 @@
 package com.example.projectfirst.pipelineExecution;
 
+import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
+import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
+import com.example.projectfirst.pipelineExecution.exception.PipelineExecutionNotFoundException;
+import com.example.projectfirst.pipelineExecution.services.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class PipelineExecutionService {
+public class PipelineExecutionService implements PipelineExecutionInterface{
     @Autowired
     private PipelineExecutionRepository pipelineExecutionRepository;
     @Autowired
     private WorkflowService workflowService;
+
 
     public List<PipelineExecutionCollection> fetchAllExecutions() {
         return pipelineExecutionRepository.findAll();
@@ -21,28 +27,6 @@ public class PipelineExecutionService {
     public PipelineExecutionCollection fetchExecution(String id) {
         return pipelineExecutionRepository.findById(id).
                 orElseThrow(() -> new PipelineExecutionNotFoundException(id));
-    }
-
-    public String executePipeline(String id) {
-        String pipelineExeId = workflowService.initiateExecution(id);
-        if(pipelineExeId == null) {
-            return "Preparation error!";
-        }
-        else {
-            return workflowService.executePipeline(pipelineExeId);
-        }
-    }
-
-    public String deleteExecution(String id) {
-        if(pipelineExecutionRepository.existsById(id)){
-            pipelineExecutionRepository.deleteById(id);
-            return "Successfully deleted!";
-        }
-        throw new PipelineExecutionNotFoundException(id);
-    }
-
-    public void deleteExecutions() {
-        pipelineExecutionRepository.deleteAll();
     }
 
     public List<PipelineExecutionCollection> fetchPausedExecutions() {
@@ -55,14 +39,37 @@ public class PipelineExecutionService {
         return pipelineExecutionList;
     }
 
-    public String resumeExecution(String id) {
-        if(pipelineExecutionRepository.existsById(id)){
-            Optional<PipelineExecutionCollection> pipelineExecution = pipelineExecutionRepository.findById(id);
-            if(pipelineExecution.get().getState().equals("paused"))
-                return "Pipeline with id: " + id + "is not paused";
-            return workflowService.executePipeline(id);
-        }else
+    public String executePipeline(String id){
+        try {
+            String pipelineExeId = workflowService.initiateExecution(id);
+            return workflowService.executePipeline(pipelineExeId);
+        }catch (IOException ex){
+            return "Pipeline execution initiation failed!";
+        }
+    }
+
+    public String resumeExecution(String id){
+        Optional<PipelineExecutionCollection> pipelineExecution = pipelineExecutionRepository.findById(id);
+
+        if(pipelineExecution.isEmpty())
             throw new PipelineExecutionNotFoundException(id);
+
+        if(pipelineExecution.get().getState().equals("paused"))
+            return "Pipeline with id: " + id + "is not paused";
+
+        return workflowService.executePipeline(id);
+    }
+
+    public String deleteExecution(String id) {
+        if(pipelineExecutionRepository.existsById(id)){
+            pipelineExecutionRepository.deleteById(id);
+            return "Successfully deleted!";
+        }
+        throw new PipelineExecutionNotFoundException(id);
+    }
+
+    public void deleteExecutions() {
+        pipelineExecutionRepository.deleteAll();
     }
 
 }

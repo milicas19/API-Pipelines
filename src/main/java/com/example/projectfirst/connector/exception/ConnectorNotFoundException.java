@@ -1,4 +1,4 @@
-package com.example.projectfirst.connector;
+package com.example.projectfirst.connector.exception;
 
 public class ConnectorNotFoundException extends RuntimeException {
     public ConnectorNotFoundException(String id) {

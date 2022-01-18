@@ -1,5 +1,6 @@
-package com.example.projectfirst.connector;
+package com.example.projectfirst.connector.model;
 
+import com.example.projectfirst.connector.model.Spec;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -10,10 +11,8 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
-@JsonTypeName("API_KEY_USER")
-public class SpecKeyUser extends Spec{
-    String keyHeaderName;
-    String key;
+@JsonTypeName("API_USER")
+public class SpecUser extends Spec {
     String userHeaderName;
     String username;
     String password;
