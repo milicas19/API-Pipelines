@@ -11,17 +11,20 @@ import java.util.List;
 public class PipelineExecutionCollection {
     @Id
     private String id;
+    private String pipelineId;
     private LocalDateTime startDate;
     private String state;
     private List<StepParameters> steps;
     private HashMap<String, String> output;
     private Integer numberOfExecutedSteps;
 
-    public PipelineExecutionCollection(LocalDateTime startDate,
+    public PipelineExecutionCollection(String pipelineId,
+                                       LocalDateTime startDate,
                                        String state,
                                        List<StepParameters> steps,
                                        HashMap<String, String> output,
                                        Integer numberOfExecutedSteps) {
+        this.pipelineId = pipelineId;
         this.startDate = startDate;
         this.state = state;
         this.steps = steps;

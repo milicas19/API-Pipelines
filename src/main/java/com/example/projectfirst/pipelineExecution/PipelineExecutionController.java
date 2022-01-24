@@ -10,27 +10,27 @@ public class PipelineExecutionController {
     @Autowired
     private PipelineExecutionService pipelineExecutionService;
 
-    @GetMapping("executions")
+    @GetMapping("/executions")
     public List<PipelineExecutionCollection> getAllExecutions(){
         return pipelineExecutionService.fetchAllExecutions();
     }
 
-    @GetMapping("executions/{id}")
+    @GetMapping("/executions/{id}")
     public PipelineExecutionCollection getExecution(@PathVariable(value="id") String id){
         return pipelineExecutionService.fetchExecution(id);
     }
 
-    @GetMapping("executions/paused")
+    @GetMapping("/executions/paused")
     public List<PipelineExecutionCollection> getPausedExecutions(){
         return pipelineExecutionService.fetchPausedExecutions();
     }
 
-    @PostMapping("execute/{id}")
+    @PostMapping("/execute/{id}")
     public String executePipeline(@PathVariable(value="id") String id){
         return pipelineExecutionService.executePipeline(id);
     }
 
-    @PutMapping("resume/{id}")
+    @PutMapping("/resume/{id}")
     public String resumeExecution(@PathVariable(value="id") String id){
         return pipelineExecutionService.resumeExecution(id);
     }
@@ -40,7 +40,7 @@ public class PipelineExecutionController {
         return pipelineExecutionService.deleteExecution(id);
     }
 
-    @DeleteMapping("executions")
+    @DeleteMapping("/executions")
     public void deleteExecutions(){
         pipelineExecutionService.deleteExecutions();
     }

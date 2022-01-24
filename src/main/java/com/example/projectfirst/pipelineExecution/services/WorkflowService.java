@@ -45,7 +45,7 @@ public class WorkflowService {
         Map<String, Pipeline> pipelineMap = objectMapper.readValue(yaml,
                 new TypeReference<>(){});
         Pipeline pipeline = pipelineMap.get("pipeline");
-        PipelineExecutionCollection pipelineExecution = new PipelineExecutionCollection(LocalDateTime.now(),
+        PipelineExecutionCollection pipelineExecution = new PipelineExecutionCollection(pipeline.getId(),LocalDateTime.now(),
                 "prepared", pipeline.getSteps(), new HashMap<>(), 0);
         pipelineExecutionRepository.save(pipelineExecution);
 
