@@ -8,9 +8,7 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Jacksonized
 @Builder
-@JsonTypeName("API_KEY")
-public class SpecKey implements Spec {
+@JsonTypeName("NO_AUTH")
+public class SpecNoAuth implements Spec{
     String host;
-    String keyHeaderName;
-    String key;
 }

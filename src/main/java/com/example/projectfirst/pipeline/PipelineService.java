@@ -1,5 +1,7 @@
 package com.example.projectfirst.pipeline;
 
+import com.example.projectfirst.connector.exception.ObjectMapperException;
+import com.example.projectfirst.pipeline.exception.PipelineAlreadyExistsException;
 import com.example.projectfirst.pipeline.exception.PipelineNotFoundException;
 import com.example.projectfirst.pipeline.model.Pipeline;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -26,7 +28,7 @@ public class PipelineService implements PipelineInterface{
                 .orElseThrow(() -> new PipelineNotFoundException(id));
     }
 
-    public String savePipeline(String yaml) {
+    public PipelineCollection savePipeline(String yaml) throws ObjectMapperException {
         // YAML to POJO
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
@@ -34,24 +36,26 @@ public class PipelineService implements PipelineInterface{
             Map<String, Pipeline> pipelineMap = objectMapper.readValue(yaml,
                     new TypeReference<>(){});
             Pipeline pipe = pipelineMap.get("pipeline");
-            if(pipelineRepository.existsById(pipe.getId())){
-                return "Pipeline with that id already exists!";
+            String id = pipe.getId();
+
+            if(pipelineRepository.existsById(id)){
+                throw new PipelineAlreadyExistsException(id);
             }
-            PipelineCollection pipeline = new PipelineCollection(pipe.getId(),yaml, LocalDateTime.now(), LocalDateTime.now());
+            PipelineCollection pipeline = new PipelineCollection(id,yaml, LocalDateTime.now(), LocalDateTime.now());
             pipelineRepository.save(pipeline);
+            return pipeline;
         } catch (IOException e) {
-            e.printStackTrace();
-            return e.getMessage();
+            throw new ObjectMapperException();
         }
-        return "Successfully saved!";
     }
 
-    public String deletePipeline(String id) {
-        if(pipelineRepository.existsById(id)){
-            pipelineRepository.deleteById(id);
-            return "Successfully deleted!";
-        }
-        throw new PipelineNotFoundException(id);
+    public PipelineCollection deletePipeline(String id) {
+        return pipelineRepository.findById(id)
+                        .map(pipelineCollection -> {
+                            pipelineRepository.deleteById(id);
+                            return pipelineCollection;
+                        })
+                .orElseThrow(() -> new PipelineNotFoundException(id));
     }
 
     public PipelineCollection updatePipeline(String yaml, String id) {

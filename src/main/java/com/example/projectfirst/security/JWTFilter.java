@@ -7,7 +7,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +19,7 @@ public class JWTFilter extends OncePerRequestFilter {
     @Autowired
     private JWTUtility jwtUtility;
     @Autowired
-    private MyUserDetailsService userService;
+    private MyUserDetailsService myUserDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -34,8 +33,9 @@ public class JWTFilter extends OncePerRequestFilter {
             token = authorizationHeader.substring(7);
             username = jwtUtility.getUsernameFromToken(token);
         }
+
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userService.loadUserByUsername(username);
+            UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
 
             if (jwtUtility.validateToken(token, userDetails)) {
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
@@ -47,6 +47,10 @@ public class JWTFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }
+        }
+
+        if(request.getRequestURI().equals("/signout")){
+            jwtUtility.revokeToken(token);
         }
 
         filterChain.doFilter(request, response);

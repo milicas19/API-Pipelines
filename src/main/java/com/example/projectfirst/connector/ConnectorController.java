@@ -1,7 +1,14 @@
 package com.example.projectfirst.connector;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -21,7 +28,7 @@ public class ConnectorController {
     }
 
     @PostMapping("/connectors")
-    public String postConnector(@RequestBody String yaml) {
+    public ConnectorCollection postConnector(@RequestBody String yaml) throws IOException {
         return connectorService.saveConnector(yaml);
     }
 
@@ -31,7 +38,7 @@ public class ConnectorController {
     }
 
     @DeleteMapping("/connectors/{id}")
-    public String deleteConnector(@PathVariable(value="id") String id){
+    public ConnectorCollection deleteConnector(@PathVariable(value="id") String id){
         return connectorService.deleteConnector(id);
     }
 

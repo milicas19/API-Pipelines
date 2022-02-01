@@ -6,31 +6,24 @@ import com.example.projectfirst.pipelineExecution.exception.PipelineExecutionNot
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 public class StateService {
     @Autowired
     private PipelineExecutionRepository pipelineExecutionRepository;
 
     public String checkState(String pipelineExeId) {
-        Optional<PipelineExecutionCollection> pipelineExecution =
-                pipelineExecutionRepository.findById(pipelineExeId);
-
-        if(pipelineExecution.isEmpty())
-            throw new PipelineExecutionNotFoundException(pipelineExeId);
-
-        return pipelineExecution.get().getState();
+        return pipelineExecutionRepository.findById(pipelineExeId)
+                .map(PipelineExecutionCollection::getState)
+                .orElseThrow(()-> new PipelineExecutionNotFoundException(pipelineExeId));
     }
 
-    public void setState(String pipelineExeId, String state) {
-        Optional<PipelineExecutionCollection> pipelineExecution =
-                pipelineExecutionRepository.findById(pipelineExeId);
-
-        if(pipelineExecution.isEmpty())
-            throw new PipelineExecutionNotFoundException(pipelineExeId);
-
-        pipelineExecution.get().setState(state);
-        pipelineExecutionRepository.save(pipelineExecution.get());
+    public PipelineExecutionCollection setState(String pipelineExeId, String state) {
+        return pipelineExecutionRepository.findById(pipelineExeId)
+                .map(pipelineExecution -> {
+                    pipelineExecution.setState(state);
+                    pipelineExecutionRepository.save(pipelineExecution);
+                    return pipelineExecution;
+                })
+                .orElseThrow(()-> new PipelineExecutionNotFoundException(pipelineExeId));
     }
 }

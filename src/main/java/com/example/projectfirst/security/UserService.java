@@ -5,6 +5,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,6 +19,8 @@ public class UserService {
     private AuthenticationManager authenticationManager;
     @Autowired
     private MyUserDetailsService myUserDetailsService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     public String saveUser(User user) {
@@ -25,6 +28,7 @@ public class UserService {
             return "User with this username already exists!";
         }
         else{
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
             return "Successfully signed!";
         }
@@ -50,4 +54,6 @@ public class UserService {
 
         return  new JWTResponse(token);
     }
+
+
 }

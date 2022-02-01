@@ -6,8 +6,8 @@ public interface PipelineExecutionInterface {
     List<PipelineExecutionCollection> fetchAllExecutions();
     PipelineExecutionCollection fetchExecution(String id);
     List<PipelineExecutionCollection> fetchPausedExecutions();
-    String executePipeline(String id);
-    String resumeExecution(String id);
-    String deleteExecution(String id);
+    PipelineExecutionCollection executePipeline(String id);
+    PipelineExecutionCollection resumeExecution(String id);
+    PipelineExecutionCollection deleteExecution(String id);
     void deleteExecutions();
 }

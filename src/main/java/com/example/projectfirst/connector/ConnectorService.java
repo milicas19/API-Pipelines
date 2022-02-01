@@ -1,10 +1,13 @@
 package com.example.projectfirst.connector;
 
+import com.example.projectfirst.connector.exception.ConnectorAlreadyExistsException;
 import com.example.projectfirst.connector.exception.ConnectorNotFoundException;
+import com.example.projectfirst.connector.exception.ObjectMapperException;
 import com.example.projectfirst.connector.model.Connector;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
@@ -13,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@AllArgsConstructor
 public class ConnectorService implements ConnectorInterface{
 
     @Autowired
@@ -28,24 +32,25 @@ public class ConnectorService implements ConnectorInterface{
                 .orElseThrow(() -> new ConnectorNotFoundException(id));
     }
 
-    public String saveConnector(String yaml) {
+    public ConnectorCollection saveConnector(String yaml) throws IOException{
         // YAML to POJO
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
         try {
             Map<String, Connector> connectorMap = objectMapper.readValue(yaml,
-                    new TypeReference<Map<String, Connector>>(){});
+                    new TypeReference<>(){});
             Connector conn = connectorMap.get("connector");
-            if(connectorRepository.existsById(conn.getId())){
-                return "Connector with that id already exists!";
+            String id = conn.getId();
+
+            if(connectorRepository.existsById(id)){
+                throw new ConnectorAlreadyExistsException(id);
             }
-            ConnectorCollection connector = new ConnectorCollection(conn.getId(),yaml, LocalDateTime.now(), LocalDateTime.now());
+            ConnectorCollection connector = new ConnectorCollection(id,yaml, LocalDateTime.now(), LocalDateTime.now());
             connectorRepository.save(connector);
+            return connector;
         } catch (IOException e) {
-                e.printStackTrace();
-                return e.getMessage();
+                throw new ObjectMapperException();
         }
-        return "Successfully saved!";
     }
 
     public ConnectorCollection updateConnector(String yaml, String id) {
@@ -58,15 +63,24 @@ public class ConnectorService implements ConnectorInterface{
                 .orElseThrow(() -> new ConnectorNotFoundException(id));
     }
 
-    public String deleteConnector(String id) {
-        if(connectorRepository.existsById(id)){
-            connectorRepository.deleteById(id);
-            return "Successfully deleted!";
-        }
-        throw new ConnectorNotFoundException(id);
+    public ConnectorCollection deleteConnector(String id) {
+        return connectorRepository.findById(id)
+                .map(connectorCollection -> {
+                   connectorRepository.deleteById(id);
+                   return connectorCollection;
+                })
+                .orElseThrow(() -> new ConnectorNotFoundException(id));
     }
 
     public void deleteConnectors() {
         connectorRepository.deleteAll();
+    }
+
+    public Connector getConnectorFromYml(String id) throws IOException{
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        String connectorYml = fetchConnector(id).getYmlFile();
+
+        Map<String, Connector> connectorMap = objectMapper.readValue(connectorYml, new TypeReference<>(){});
+        return connectorMap.get("connector");
     }
 }

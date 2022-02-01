@@ -1,55 +1,68 @@
 package com.example.projectfirst.pipelineExecution.services;
 
-import com.example.projectfirst.connector.ConnectorService;
-import com.example.projectfirst.pipeline.apiRequestHandler.GetHandler;
-import com.example.projectfirst.pipeline.apiRequestHandler.PostHandler;
+import com.example.projectfirst.pipeline.apiRequestHandler.StepHandler;
 import com.example.projectfirst.pipeline.model.StepParameters;
-import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
-import com.example.projectfirst.pipelineExecution.exception.PipelineExecutionNotFoundException;
-import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
+import com.example.projectfirst.pipeline.registrar.StepRegistrar;
+import com.example.projectfirst.pipelineExecution.exception.PipelineExecutionFailedException;
 import com.squareup.okhttp.Response;
+import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Service;
+import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.Optional;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class ExecutionService {
+
     @Autowired
-    private PipelineExecutionRepository pipelineExecutionRepository;
+    private SaveOutputService saveOutputService;
     @Autowired
-    private ConnectorService connectorService;
+    private StateService stateService;
+    @Autowired
+    private AutowireCapableBeanFactory beanFactory;
 
-    @Retryable(value = {RuntimeException.class, IOException.class}, maxAttempts = 2, backoff = @Backoff(delay = 2000,multiplier = 2))
-    public Pair<String, String> executeStep(String pipelineExeId, StepParameters stepParameters) throws IOException{
-        Optional<PipelineExecutionCollection> pipelineExecution =
-                pipelineExecutionRepository.findById(pipelineExeId);
+    private final Map<String, StepHandler> stepHandlerMap = new HashMap<>();
 
-        if(pipelineExecution.isEmpty())
-            throw new PipelineExecutionNotFoundException(pipelineExeId);
+    @PostConstruct
+    public void init()  {
+        Reflections reflections = new Reflections(
+                "com.example.projectfirst.pipeline", Scanners.SubTypes);
+        Set<Class<? extends StepRegistrar>> registrars = reflections.getSubTypesOf(StepRegistrar.class);
+        for (Class<? extends StepRegistrar> registrar : registrars) {
+            try {
+                StepRegistrar stepRegistrar = registrar.getDeclaredConstructor().newInstance();
+                Map<String, Class<? extends StepHandler>> registeredSteps = stepRegistrar.getRegisteredSteps();
 
-        String state = pipelineExecution.get().getState();
+                for (Map.Entry<String, Class<? extends StepHandler>> entry : registeredSteps.entrySet()) {
+                    StepHandler stepHandler = entry.getValue().getDeclaredConstructor().newInstance();
+                    beanFactory.autowireBean(stepHandler);
+                    String key = entry.getKey();
+                    this.stepHandlerMap.put(key, stepHandler);
+                }
+            } catch (InstantiationException |
+                    NoSuchMethodException |
+                    InvocationTargetException |
+                    IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-        if (!(state.equals("prepared") || state.equals("running")))
-            return Pair.of(state, "");
+    public void executeStep(String pipelineExeId, StepParameters stepParameters) throws IOException {
 
-        pipelineExecution.get().setState("running");
-        pipelineExecutionRepository.save(pipelineExecution.get());
+        Response response = this.stepHandlerMap.get(stepParameters.getType()).execute(stepParameters);
 
-        switch (stepParameters.getType()) {
-            case "API_GET":
-                GetHandler getHandler = new GetHandler();
-                Response responseGet = getHandler.execute(stepParameters, connectorService);
-                return Pair.of(pipelineExecution.get().getState(), responseGet.body().string());
-            case "API_POST":
-                PostHandler postHandler = new PostHandler();
-                Response responsePost = postHandler.execute(stepParameters, connectorService);
-                return Pair.of(pipelineExecution.get().getState(), responsePost.body().string());
-            default:
-                return Pair.of("abort","");
+        if(response.isSuccessful()){
+            saveOutputService.save(pipelineExeId, response.body().string(), stepParameters.getName());
+        }else{
+            stateService.setState(pipelineExeId, "aborted");
+            throw new PipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName() + " failed!");
         }
     }
 
