@@ -1,17 +1,16 @@
-package com.example.projectfirst.pipeline;
+package com.example.projectfirst.pipeline.model;
 
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+import lombok.Builder;
+import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
-
 import java.util.List;
 
 @Value
 @Jacksonized
-@SuperBuilder
+@Builder
 public class Pipeline {
     String id;
     String name;
     String description;
-    List<Step> steps;
+    List<StepParameters> steps;
 }

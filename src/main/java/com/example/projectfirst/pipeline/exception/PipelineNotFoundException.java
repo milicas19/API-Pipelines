@@ -1,4 +1,4 @@
-package com.example.projectfirst.pipeline;
+package com.example.projectfirst.pipeline.exception;
 
 public class PipelineNotFoundException extends RuntimeException {
     public PipelineNotFoundException(String id) {

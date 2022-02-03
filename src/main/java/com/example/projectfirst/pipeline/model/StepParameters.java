@@ -1,15 +1,16 @@
-package com.example.projectfirst.pipeline;
+package com.example.projectfirst.pipeline.model;
 
+import com.example.projectfirst.pipeline.apiRequestHandler.*;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Builder;
 import lombok.Value;
-import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
 @Value
 @Jacksonized
-@SuperBuilder
-public class Step {
+@Builder
+public class StepParameters {
     String name;
     String type;
     @JsonTypeInfo(
@@ -21,4 +22,6 @@ public class Step {
             @JsonSubTypes.Type(value = SpecPost.class, name = "API_POST")
     })
     Spec spec;
+    int retry;
+    long backOffPeriod;
 }
