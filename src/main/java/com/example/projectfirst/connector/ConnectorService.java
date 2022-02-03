@@ -22,7 +22,6 @@ public class ConnectorService implements ConnectorInterface{
     @Autowired
     private ConnectorRepository connectorRepository;
 
-
     public List<ConnectorCollection> fetchAllConnectors() {
         return connectorRepository.findAll();
     }
