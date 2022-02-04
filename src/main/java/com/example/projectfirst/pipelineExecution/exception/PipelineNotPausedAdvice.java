@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class PipelineNotPausedAdvice {
     @ResponseBody
-    @ExceptionHandler(PipelineNotPausedException.class)
+    @ExceptionHandler(APIPPipelineNotPausedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    String pipelineNotPausedHandler(PipelineNotPausedException ex) {
+    String pipelineNotPausedHandler(APIPPipelineNotPausedException ex) {
         return ex.getMessage();
     }
 }

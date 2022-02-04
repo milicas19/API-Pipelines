@@ -1,4 +1,4 @@
-package com.example.projectfirst.pipeline.exception;
+package com.example.projectfirst.connector.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
 @Slf4j
-public class PipelineAlreadyExistsAdvice {
+public class WrongYmlFileOfConnectorAdvice {
     @ResponseBody
-    @ExceptionHandler(APIPPipelineAlreadyExistsException.class)
+    @ExceptionHandler(APIPWrongYmlFileOfConnectorException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    String pipelineAlreadyExistsHandler(APIPPipelineAlreadyExistsException ex) {
-        log.error(ex.getMessage());
-        return ex.getMessage();
+    String wrongYmlFileOfConnectorHandler(APIPWrongYmlFileOfConnectorException e) {
+        log.error("Failed to save connector! Message: " + e.getMessage());
+        return "Something wrong with the yml string of connector!";
     }
 }

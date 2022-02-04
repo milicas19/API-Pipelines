@@ -1,6 +1,7 @@
 package com.example.projectfirst.pipeline.model;
 
-import com.example.projectfirst.pipeline.apiRequestHandler.*;
+import com.example.projectfirst.pipeline.apiRequestHandler.SpecGet;
+import com.example.projectfirst.pipeline.apiRequestHandler.SpecPost;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Builder;

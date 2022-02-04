@@ -1,23 +1,28 @@
 package com.example.projectfirst.pipelineExecution.services;
 
+import com.example.projectfirst.connector.exception.APIPWrongYmlFileOfConnectorException;
 import com.example.projectfirst.pipeline.apiRequestHandler.StepHandler;
 import com.example.projectfirst.pipeline.model.StepParameters;
 import com.example.projectfirst.pipeline.registrar.StepRegistrar;
-import com.example.projectfirst.pipelineExecution.exception.PipelineExecutionFailedException;
-import com.squareup.okhttp.Response;
+import com.example.projectfirst.pipelineExecution.StepExecution;
+import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFailedException;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
+import org.reflections.util.ConfigurationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class ExecutionService {
 
     @Autowired
@@ -26,14 +31,22 @@ public class ExecutionService {
     private StateService stateService;
     @Autowired
     private AutowireCapableBeanFactory beanFactory;
-
     private final Map<String, StepHandler> stepHandlerMap = new HashMap<>();
 
     @PostConstruct
     public void init()  {
-        Reflections reflections = new Reflections(
-                "com.example.projectfirst.pipeline", Scanners.SubTypes);
+        log.info("init() of ExecutionService!");
+        Instant start = Instant.now();
+        Reflections reflections =  new Reflections(
+                new ConfigurationBuilder()
+                        .forPackage("")
+                        .setScanners(Scanners.SubTypes)
+        );
         Set<Class<? extends StepRegistrar>> registrars = reflections.getSubTypesOf(StepRegistrar.class);
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        log.info("Time taken to scan reflection: "+ timeElapsed.toMillis() +" milliseconds");
+
         for (Class<? extends StepRegistrar> registrar : registrars) {
             try {
                 StepRegistrar stepRegistrar = registrar.getDeclaredConstructor().newInstance();
@@ -49,21 +62,16 @@ public class ExecutionService {
                     NoSuchMethodException |
                     InvocationTargetException |
                     IllegalAccessException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
             }
         }
     }
 
-    public void executeStep(String pipelineExeId, StepParameters stepParameters) throws IOException {
+    public StepExecution executeStep(String pipelineExeId, StepParameters stepParameters)
+            throws APIPWrongYmlFileOfConnectorException, APIPStepExecutionFailedException {
 
-        Response response = this.stepHandlerMap.get(stepParameters.getType()).execute(stepParameters);
-
-        if(response.isSuccessful()){
-            saveOutputService.save(pipelineExeId, response.body().string(), stepParameters.getName());
-        }else{
-            stateService.setState(pipelineExeId, "aborted");
-            throw new PipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName() + " failed!");
-        }
+        log.info("Executing " + stepParameters.getName() + "!");
+        return this.stepHandlerMap.get(stepParameters.getType()).execute(stepParameters);
     }
 
 }

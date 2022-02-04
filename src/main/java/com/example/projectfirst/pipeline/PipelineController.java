@@ -1,6 +1,6 @@
 package com.example.projectfirst.pipeline;
 
-import com.example.projectfirst.connector.exception.ObjectMapperException;
+import com.example.projectfirst.pipeline.exception.APIPWrongYmlFileOfPipelineException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +28,7 @@ public class PipelineController {
     }
 
     @PostMapping("/pipelines")
-    public PipelineCollection postPipeline(@RequestBody String yaml) throws ObjectMapperException {
+    public PipelineCollection postPipeline(@RequestBody String yaml) throws APIPWrongYmlFileOfPipelineException {
         return pipelineService.savePipeline(yaml);
     }
 
@@ -38,8 +38,8 @@ public class PipelineController {
     }
 
     @DeleteMapping("/pipelines/{id}")
-    public PipelineCollection deletePipeline(@PathVariable(value="id") String id){
-        return pipelineService.deletePipeline(id);
+    public void deletePipeline(@PathVariable(value="id") String id){
+        pipelineService.deletePipeline(id);
     }
 
     @DeleteMapping("/pipelines")
