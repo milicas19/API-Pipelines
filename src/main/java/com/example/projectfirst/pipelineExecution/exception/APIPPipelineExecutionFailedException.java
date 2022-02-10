@@ -1,6 +1,8 @@
 package com.example.projectfirst.pipelineExecution.exception;
 
-public class APIPPipelineExecutionFailedException extends RuntimeException {
+import com.example.projectfirst.connector.exception.APIPGeneralException;
+
+public class APIPPipelineExecutionFailedException extends APIPGeneralException {
     public APIPPipelineExecutionFailedException(String msg){
         super(msg);
     }

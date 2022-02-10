@@ -1,8 +1,8 @@
 package com.example.projectfirst.pipeline;
 
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.exception.APIPPipelineAlreadyExistsException;
 import com.example.projectfirst.pipeline.exception.APIPPipelineNotFoundException;
-import com.example.projectfirst.pipeline.exception.APIPWrongYmlFileOfPipelineException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,7 +76,7 @@ class PipelineServiceTest {
 
 
     @Test
-    void canSaveConnector() throws APIPWrongYmlFileOfPipelineException {
+    void canSaveConnector() throws APIPYamlParsingException {
         String ymlPipeline = "pipeline:\n" +
                 "    id: pipeTest\n" +
                 "    name: Pipeline\n" +

@@ -1,7 +1,7 @@
 package com.example.projectfirst.connector.exception;
 
-public class APIPConnectorNotFoundException extends RuntimeException {
-    public APIPConnectorNotFoundException(String id) {
-        super("Could not find connector with id " + id + "!");
+public class APIPConnectorNotFoundException extends APIPGeneralException {
+    public APIPConnectorNotFoundException(String msg) {
+        super(msg);
     }
 }

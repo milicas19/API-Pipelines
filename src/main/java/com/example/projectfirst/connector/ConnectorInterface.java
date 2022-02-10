@@ -1,13 +1,13 @@
 package com.example.projectfirst.connector;
 
-import com.example.projectfirst.connector.exception.APIPWrongYmlFileOfConnectorException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 
 import java.util.List;
 
 public interface ConnectorInterface {
     List<ConnectorCollection> fetchAllConnectors();
     ConnectorCollection fetchConnector(String id);
-    ConnectorCollection saveConnector(String yaml) throws APIPWrongYmlFileOfConnectorException;
+    ConnectorCollection saveConnector(String yaml) throws APIPYamlParsingException;
     ConnectorCollection updateConnector(String yaml, String id);
     void deleteConnector(String id);
     void deleteConnectors();

@@ -1,8 +1,8 @@
 package com.example.projectfirst.pipeline;
 
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.exception.APIPPipelineAlreadyExistsException;
 import com.example.projectfirst.pipeline.exception.APIPPipelineNotFoundException;
-import com.example.projectfirst.pipeline.exception.APIPWrongYmlFileOfPipelineException;
 import com.example.projectfirst.pipeline.model.Pipeline;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,10 +31,10 @@ public class PipelineService implements PipelineInterface{
     public PipelineCollection fetchPipeline(String id) {
         log.info("Fetching pipeline with id " + id + "!");
         return pipelineRepository.findById(id)
-                .orElseThrow(() -> new APIPPipelineNotFoundException(id));
+                .orElseThrow(() -> new APIPPipelineNotFoundException("Could not find pipeline with id " + id + "!"));
     }
 
-    public PipelineCollection savePipeline(String yaml) throws APIPWrongYmlFileOfPipelineException {
+    public PipelineCollection savePipeline(String yaml) throws APIPYamlParsingException {
         log.info("Saving pipeline!");
         // YAML to POJO
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
@@ -46,7 +46,7 @@ public class PipelineService implements PipelineInterface{
             String id = pipe.getId();
 
             if(pipelineRepository.existsById(id)){
-                throw new APIPPipelineAlreadyExistsException(id);
+                throw new APIPPipelineAlreadyExistsException("Pipeline with id " + id + " already exists!");
             }
             PipelineCollection pipeline = new PipelineCollection(id,yaml, LocalDateTime.now(), LocalDateTime.now());
             pipelineRepository.save(pipeline);
@@ -54,7 +54,7 @@ public class PipelineService implements PipelineInterface{
             return pipeline;
         } catch (IOException e) {
             log.error("Failed to save pipeline! Message: " + e.getMessage());
-            throw new APIPWrongYmlFileOfPipelineException(e);
+            throw new APIPYamlParsingException("Error while parsing pipeline from yaml input!");
         }
     }
 
@@ -67,7 +67,7 @@ public class PipelineService implements PipelineInterface{
                     log.info("Pipeline successfully updated!");
                     return pipelineRepository.save(pipelineCollection);
                 })
-                .orElseThrow(() -> new APIPPipelineNotFoundException(id));
+                .orElseThrow(() -> new APIPPipelineNotFoundException("Could not find pipeline with id " + id + "!"));
     }
 
     public void deletePipeline(String id) {

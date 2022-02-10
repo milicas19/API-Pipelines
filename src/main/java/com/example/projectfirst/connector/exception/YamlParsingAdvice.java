@@ -1,4 +1,4 @@
-package com.example.projectfirst.pipelineExecution.exception;
+package com.example.projectfirst.connector.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
-public class PipelineNotPausedAdvice {
+public class YamlParsingAdvice {
     @ResponseBody
-    @ExceptionHandler(APIPPipelineNotPausedException.class)
+    @ExceptionHandler(APIPYamlParsingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    String pipelineNotPausedHandler(APIPPipelineNotPausedException ex) {
-        return ex.getMessage();
+    String APIPYamlParsingHandler(APIPYamlParsingException e) {
+        return e.getMessage();
     }
 }

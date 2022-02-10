@@ -1,12 +1,13 @@
 package com.example.projectfirst.pipelineExecution;
 
-import com.example.projectfirst.connector.exception.APIPWrongYmlFileOfConnectorException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.pipelineExecution.exception.APIPInitiateExecutionFailed;
 import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionFailedException;
 import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
 import com.example.projectfirst.pipelineExecution.exception.APIPPipelineNotPausedException;
 import com.example.projectfirst.pipelineExecution.exception.APIPRetryMechanismException;
 import com.example.projectfirst.pipelineExecution.services.WorkflowService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 @Slf4j
 public class PipelineExecutionService implements PipelineExecutionInterface{
     @Autowired
@@ -33,7 +35,7 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
         return pipelineExecutionRepository.findById(id).
                 orElseThrow(() -> {
                     log.error("Pipeline execution not found!");
-                    throw new APIPPipelineExecutionNotFoundException(id);
+                    throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + id + "!");
                 });
     }
 
@@ -49,7 +51,7 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
     }
 
     public PipelineExecutionCollection executePipeline(String id)
-            throws APIPWrongYmlFileOfConnectorException, APIPRetryMechanismException {
+            throws APIPYamlParsingException, APIPRetryMechanismException {
 
         log.info("Execution of pipeline with id " + id + " begins!");
         try {
@@ -63,7 +65,7 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
     }
 
     public PipelineExecutionCollection resumeExecution(String id)
-            throws APIPWrongYmlFileOfConnectorException, APIPRetryMechanismException {
+            throws APIPYamlParsingException, APIPRetryMechanismException {
 
         log.info("Resuming pipeline execution with id " + id + "!");
         Optional<PipelineExecutionCollection> pipelineExecution
@@ -71,11 +73,11 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
 
         if(pipelineExecution.isEmpty()) {
             log.error("Pipeline execution not found!");
-            throw new APIPPipelineExecutionNotFoundException(id);
+            throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + id + "!");
         }
         if(!pipelineExecution.get().getState().equals("paused")) {
             log.error("Pipeline execution not paused!");
-            throw new APIPPipelineNotPausedException(id);
+            throw new APIPPipelineNotPausedException("Pipeline with id " + id + " is not paused!");
         }
 
         return workflowService.executePipelineSteps(id);

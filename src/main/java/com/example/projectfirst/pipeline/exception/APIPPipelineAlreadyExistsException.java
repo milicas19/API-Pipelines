@@ -1,7 +1,9 @@
 package com.example.projectfirst.pipeline.exception;
 
-public class APIPPipelineAlreadyExistsException extends RuntimeException{
-    public APIPPipelineAlreadyExistsException(String id){
-        super("Pipeline with id " + id + " already exists!");
+import com.example.projectfirst.connector.exception.APIPGeneralException;
+
+public class APIPPipelineAlreadyExistsException extends APIPGeneralException {
+    public APIPPipelineAlreadyExistsException(String msg){
+        super(msg);
     }
 }

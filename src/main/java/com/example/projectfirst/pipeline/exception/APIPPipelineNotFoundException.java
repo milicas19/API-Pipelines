@@ -1,7 +1,9 @@
 package com.example.projectfirst.pipeline.exception;
 
-public class APIPPipelineNotFoundException extends RuntimeException {
-    public APIPPipelineNotFoundException(String id) {
-        super("Could not find pipeline with id " + id + "!");
+import com.example.projectfirst.connector.exception.APIPGeneralException;
+
+public class APIPPipelineNotFoundException extends APIPGeneralException {
+    public APIPPipelineNotFoundException(String msg) {
+        super(msg);
     }
 }

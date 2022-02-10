@@ -1,7 +1,7 @@
 package com.example.projectfirst.pipeline.apiRequestHandler;
 
 import com.example.projectfirst.connector.ConnectorService;
-import com.example.projectfirst.connector.exception.APIPWrongYmlFileOfConnectorException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.connector.model.Connector;
 import com.example.projectfirst.connector.model.SpecKey;
 import com.example.projectfirst.connector.model.SpecKeyUser;
@@ -32,7 +32,7 @@ public class StepService {
     private ConnectorService connectorService;
 
     public StepExecution executePostRequest(StepParameters stepParameters)
-            throws APIPWrongYmlFileOfConnectorException, APIPStepExecutionFailedException {
+            throws APIPYamlParsingException, APIPStepExecutionFailedException {
 
         log.info("Execution of post request!");
 
@@ -63,7 +63,7 @@ public class StepService {
     }
 
     public StepExecution executeGetRequest(StepParameters stepParameters)
-            throws APIPWrongYmlFileOfConnectorException, APIPStepExecutionFailedException{
+            throws APIPYamlParsingException, APIPStepExecutionFailedException{
 
         log.info("Execution of get request!");
 
@@ -89,7 +89,7 @@ public class StepService {
         }
     }
 
-    public Connector getConnectorFromYml(String id) throws APIPWrongYmlFileOfConnectorException{
+    public Connector getConnectorFromYml(String id) throws APIPYamlParsingException{
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
         String connectorYml = connectorService.fetchConnector(id).getYmlFile();
         try {
@@ -97,7 +97,7 @@ public class StepService {
             });
             return connectorMap.get("connector");
         }catch (IOException e){
-            throw new APIPWrongYmlFileOfConnectorException(e);
+            throw new APIPYamlParsingException("Error while parsing connector from yaml input!");
         }
     }
 

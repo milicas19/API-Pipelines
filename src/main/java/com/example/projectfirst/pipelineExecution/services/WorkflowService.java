@@ -1,6 +1,6 @@
 package com.example.projectfirst.pipelineExecution.services;
 
-import com.example.projectfirst.connector.exception.APIPWrongYmlFileOfConnectorException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.PipelineService;
 import com.example.projectfirst.pipeline.model.Pipeline;
 import com.example.projectfirst.pipeline.model.StepParameters;
@@ -67,7 +67,7 @@ public class WorkflowService {
     }
 
     public PipelineExecutionCollection executePipelineSteps(String pipelineExeId)
-            throws APIPWrongYmlFileOfConnectorException, APIPRetryMechanismException {
+            throws APIPYamlParsingException, APIPRetryMechanismException {
 
 
         Optional<PipelineExecutionCollection> pipelineExecutionOp
@@ -75,7 +75,7 @@ public class WorkflowService {
 
         if(pipelineExecutionOp.isEmpty()) {
             log.error("Pipeline execution with id " + pipelineExeId + "not found!");
-            throw new APIPPipelineExecutionNotFoundException(pipelineExeId);
+            throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
         }
         PipelineExecutionCollection pipelineExecution = pipelineExecutionOp.get();
 
@@ -130,9 +130,9 @@ public class WorkflowService {
                 log.error("Failed to execute step! Message: " + e.getMessage());
                 stateService.setState(pipelineExeId, "aborted");
                 throw new APIPPipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName() + " failed!");
-            } catch (APIPWrongYmlFileOfConnectorException ex){
+            } catch (APIPYamlParsingException ex){
                 log.error("Failed to execute step! Failed to read yml file of connector! Message: " + ex.getMessage());
-                throw ex;
+                throw new APIPYamlParsingException("Error while parsing connector from yaml input!");
             } catch (IOException exx){
                 log.error("Failed to execute step! Retry mechanism failed! Message: " + exx.getMessage());
                 throw new APIPRetryMechanismException(exx);

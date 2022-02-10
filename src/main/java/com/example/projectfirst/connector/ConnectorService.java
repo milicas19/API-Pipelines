@@ -2,7 +2,7 @@ package com.example.projectfirst.connector;
 
 import com.example.projectfirst.connector.exception.APIPConnectorAlreadyExistsException;
 import com.example.projectfirst.connector.exception.APIPConnectorNotFoundException;
-import com.example.projectfirst.connector.exception.APIPWrongYmlFileOfConnectorException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.connector.model.Connector;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,10 +32,10 @@ public class ConnectorService implements ConnectorInterface{
     public ConnectorCollection fetchConnector(String id){
         log.info("Fetching connector with id " + id +"!");
         return connectorRepository.findById(id)
-                .orElseThrow(() -> new APIPConnectorNotFoundException(id));
+                .orElseThrow(() -> new APIPConnectorNotFoundException("Could not find connector with id " + id + "!"));
     }
 
-    public ConnectorCollection saveConnector(String yaml) throws APIPWrongYmlFileOfConnectorException {
+    public ConnectorCollection saveConnector(String yaml) throws APIPYamlParsingException {
         log.info("Saving connector!");
         // YAML to POJO
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
@@ -47,7 +47,7 @@ public class ConnectorService implements ConnectorInterface{
             String id = conn.getId();
 
             if(connectorRepository.existsById(id)){
-                throw new APIPConnectorAlreadyExistsException(id);
+                throw new APIPConnectorAlreadyExistsException("Connector with id " + id + " already exists!");
             }
             ConnectorCollection connector = new ConnectorCollection(id,yaml, LocalDateTime.now(), LocalDateTime.now());
             connectorRepository.save(connector);
@@ -55,7 +55,7 @@ public class ConnectorService implements ConnectorInterface{
             return connector;
         } catch (IOException e) {
             log.error("Failed to save connector! Message: " + e.getMessage());
-            throw new APIPWrongYmlFileOfConnectorException(e);
+            throw new APIPYamlParsingException("Error while parsing connector from yaml input!");
         }
     }
 
@@ -68,7 +68,7 @@ public class ConnectorService implements ConnectorInterface{
                     log.info("Connector successfully updated!");
                     return connectorRepository.save(connectorCollection);
                 })
-                .orElseThrow(() -> new APIPConnectorNotFoundException(id));
+                .orElseThrow(() -> new APIPConnectorNotFoundException("Could not find connector with id " + id + "!"));
     }
 
     public void deleteConnector(String id) {

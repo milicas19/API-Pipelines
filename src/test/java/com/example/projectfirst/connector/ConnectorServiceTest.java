@@ -2,7 +2,7 @@ package com.example.projectfirst.connector;
 
 import com.example.projectfirst.connector.exception.APIPConnectorAlreadyExistsException;
 import com.example.projectfirst.connector.exception.APIPConnectorNotFoundException;
-import com.example.projectfirst.connector.exception.APIPWrongYmlFileOfConnectorException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,7 +69,7 @@ class ConnectorServiceTest {
 
 
     @Test
-    void canSaveConnector() throws APIPWrongYmlFileOfConnectorException {
+    void canSaveConnector() throws APIPYamlParsingException {
         String ymlConnector = "connector:\n" +
                 "    id: connTest\n" +
                 "    name: Test Connector\n" +

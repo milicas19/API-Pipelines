@@ -1,6 +1,6 @@
 package com.example.projectfirst.pipelineExecution.services;
 
-import com.example.projectfirst.connector.exception.APIPWrongYmlFileOfConnectorException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.apiRequestHandler.StepHandler;
 import com.example.projectfirst.pipeline.model.StepParameters;
 import com.example.projectfirst.pipeline.registrar.StepRegistrar;
@@ -68,7 +68,7 @@ public class ExecutionService {
     }
 
     public StepExecution executeStep(String pipelineExeId, StepParameters stepParameters)
-            throws APIPWrongYmlFileOfConnectorException, APIPStepExecutionFailedException {
+            throws APIPYamlParsingException, APIPStepExecutionFailedException {
 
         log.info("Executing " + stepParameters.getName() + "!");
         return this.stepHandlerMap.get(stepParameters.getType()).execute(stepParameters);

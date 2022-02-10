@@ -1,6 +1,6 @@
 package com.example.projectfirst.connector;
 
-import com.example.projectfirst.connector.exception.APIPWrongYmlFileOfConnectorException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +28,7 @@ public class ConnectorController {
     }
 
     @PostMapping("/connectors")
-    public ConnectorCollection postConnector(@RequestBody String yaml) throws APIPWrongYmlFileOfConnectorException {
+    public ConnectorCollection postConnector(@RequestBody String yaml) throws APIPYamlParsingException {
         return connectorService.saveConnector(yaml);
     }
 

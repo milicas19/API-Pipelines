@@ -1,7 +1,6 @@
 package com.example.projectfirst.pipelineExecution;
 
-import com.example.projectfirst.connector.exception.APIPWrongYmlFileOfConnectorException;
-import com.example.projectfirst.pipeline.exception.APIPWrongYmlFileOfPipelineException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.pipelineExecution.exception.APIPRetryMechanismException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,14 +33,14 @@ public class PipelineExecutionController {
 
     @PostMapping("/execute/{id}")
     public PipelineExecutionCollection executePipeline(@PathVariable(value="id") String id)
-            throws APIPWrongYmlFileOfConnectorException, APIPRetryMechanismException {
+            throws APIPYamlParsingException, APIPRetryMechanismException {
 
         return pipelineExecutionService.executePipeline(id);
     }
 
     @PutMapping("/resume/{id}")
     public PipelineExecutionCollection resumeExecution(@PathVariable(value="id") String id)
-            throws APIPWrongYmlFileOfConnectorException, APIPRetryMechanismException{
+            throws APIPYamlParsingException, APIPRetryMechanismException{
 
         return pipelineExecutionService.resumeExecution(id);
     }

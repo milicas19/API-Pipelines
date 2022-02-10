@@ -1,4 +1,4 @@
-package com.example.projectfirst.pipeline.exception;
+package com.example.projectfirst.connector.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
 @Slf4j
-public class PipelineNotFoundAdvice {
+public class GeneralAdvice {
     @ResponseBody
-    @ExceptionHandler(APIPPipelineNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    String pipelineNotFoundHandler(APIPPipelineNotFoundException ex) {
+    @ExceptionHandler(APIPGeneralException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    String generalHandler(APIPGeneralException ex) {
         log.error(ex.getMessage());
         return ex.getMessage();
     }

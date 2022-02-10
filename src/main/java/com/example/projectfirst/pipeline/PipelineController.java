@@ -1,6 +1,6 @@
 package com.example.projectfirst.pipeline;
 
-import com.example.projectfirst.pipeline.exception.APIPWrongYmlFileOfPipelineException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +28,7 @@ public class PipelineController {
     }
 
     @PostMapping("/pipelines")
-    public PipelineCollection postPipeline(@RequestBody String yaml) throws APIPWrongYmlFileOfPipelineException {
+    public PipelineCollection postPipeline(@RequestBody String yaml) throws APIPYamlParsingException {
         return pipelineService.savePipeline(yaml);
     }
 
