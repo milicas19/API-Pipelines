@@ -1,14 +1,14 @@
 package com.example.projectfirst.connector;
 
-import com.example.projectfirst.connector.exception.ConnectorAlreadyExistsException;
-import com.example.projectfirst.connector.exception.ConnectorNotFoundException;
-import org.assertj.core.api.AssertionsForClassTypes;
+import com.example.projectfirst.connector.exception.APIPConnectorAlreadyExistsException;
+import com.example.projectfirst.connector.exception.APIPConnectorNotFoundException;
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -50,37 +50,26 @@ class ConnectorServiceTest {
         ConnectorCollection connectorTest = new ConnectorCollection(id, ymlConnector, dateTime, dateTime);
         given(connectorRepository.findById(any())).willReturn(Optional.of(connectorTest));
 
-        ConnectorCollection fetchedConnector= underTest.fetchConnector(id);
+        ConnectorCollection fetchedConnector = underTest.fetchConnector(id);
 
-        verify(connectorRepository).findById(any());
-
-        AssertionsForClassTypes.assertThat(fetchedConnector.getYmlFile()).isEqualTo(connectorTest.getYmlFile());
+        assertThat(fetchedConnector.getYmlFile()).isEqualTo(connectorTest.getYmlFile());
     }
 
     @Test
     void willThrowWhenConnectorNotFound(){
-        String ymlConnector = "connector:\n" +
-                "    id: connTest\n" +
-                "    name: Test Connector\n" +
-                "    type: NO_AUTH\n" +
-                "    spec: \n" +
-                "        host: test-host";
-        LocalDateTime dateTime = LocalDateTime.now();
-        ConnectorCollection connectorTest = new ConnectorCollection("connTest", ymlConnector, dateTime, dateTime);
-        String id = connectorTest.getId();
+        String id = "connTest";
 
         given(connectorRepository.findById(any()))
                 .willReturn(Optional.empty());
 
         assertThatThrownBy(() -> underTest.fetchConnector(id))
-                .isInstanceOf(ConnectorNotFoundException.class)
-                .hasMessageContaining("Could not find connector with id: " + id + "!");
-
+                .isInstanceOf(APIPConnectorNotFoundException.class)
+                .hasMessageContaining("Could not find connector with id " + id + "!");
     }
 
 
     @Test
-    void canSaveConnector() throws IOException {
+    void canSaveConnector() throws APIPYamlParsingException {
         String ymlConnector = "connector:\n" +
                 "    id: connTest\n" +
                 "    name: Test Connector\n" +
@@ -89,7 +78,6 @@ class ConnectorServiceTest {
                 "        host: test-host";
         LocalDateTime dateTime = LocalDateTime.now();
         ConnectorCollection connectorTest = new ConnectorCollection("connTest", ymlConnector, dateTime, dateTime);
-        String id = connectorTest.getId();
 
         given(connectorRepository.save(any()))
                 .willReturn(connectorTest);
@@ -100,7 +88,7 @@ class ConnectorServiceTest {
     }
 
     @Test
-    void willThrowWhenIdIsTaken() throws IOException {
+    void willThrowWhenIdIsTaken(){
         String ymlConnector = "connector:\n" +
                 "    id: connTest\n" +
                 "    name: Test Connector\n" +
@@ -108,12 +96,13 @@ class ConnectorServiceTest {
                 "    spec: \n" +
                 "        host: test-host";
 
+        String id = "connTest";
         given(connectorRepository.existsById(anyString()))
                 .willReturn(true);
 
         assertThatThrownBy(() -> underTest.saveConnector(ymlConnector))
-                .isInstanceOf(ConnectorAlreadyExistsException.class)
-                .hasMessageContaining("Connector with id: connTest already exists!");
+                .isInstanceOf(APIPConnectorAlreadyExistsException.class)
+                .hasMessageContaining("Connector with id " + id + " already exists!");
     }
 
 
@@ -141,6 +130,7 @@ class ConnectorServiceTest {
 
         connectorTest.setYmlFile(newYmlConnector);
         connectorTest.setModificationDate(LocalDateTime.now());
+
         given(connectorRepository.save(any()))
                 .willReturn(connectorTest);
 
@@ -151,22 +141,17 @@ class ConnectorServiceTest {
 
     @Test
     void canDeleteConnector() {
-        String ymlConnector = "connector:\n" +
-                "    id: connTest\n" +
-                "    name: Test Connector\n" +
-                "    type: NO_AUTH\n" +
-                "    spec: \n" +
-                "        host: test-host";
-        LocalDateTime dateTime = LocalDateTime.now();
-        ConnectorCollection connectorTest = new ConnectorCollection("connTest", ymlConnector, dateTime, dateTime);
-        String id = connectorTest.getId();
+        String id = "connTest";
+        underTest.deleteConnector(id);
 
-        given(connectorRepository.findById(any()))
-                .willReturn(Optional.of(connectorTest));
+        ArgumentCaptor<String> idArgumentCaptor
+                = ArgumentCaptor.forClass(String.class);
 
-        ConnectorCollection deletedConnector = underTest.deleteConnector(id);
+        verify(connectorRepository).deleteById(idArgumentCaptor.capture());
 
-        assertThat(deletedConnector.getYmlFile()).isEqualTo(connectorTest.getYmlFile());
+        String capturedId = idArgumentCaptor.getValue();
+
+        assertThat(capturedId).isEqualTo(id);
     }
 
     @Test

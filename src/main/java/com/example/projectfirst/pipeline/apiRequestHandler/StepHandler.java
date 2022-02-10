@@ -1,9 +1,13 @@
 package com.example.projectfirst.pipeline.apiRequestHandler;
 
+import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.model.StepParameters;
-import com.squareup.okhttp.Response;
+import com.example.projectfirst.pipelineExecution.StepExecution;
+import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFailedException;
+
 import java.io.IOException;
 
 public interface StepHandler {
-    Response execute(StepParameters stepParameter) throws IOException;
+    StepExecution execute(StepParameters stepParameter)
+            throws APIPYamlParsingException, APIPStepExecutionFailedException;
 }
