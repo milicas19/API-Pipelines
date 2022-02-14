@@ -97,31 +97,36 @@ public class WorkflowService {
                 throw new APIPPipelineExecutionFailedException("Pipeline execution " + state + "!");
             }
 
-            // expressionResolverService.resolveStep(pipelineExeId, stepParameters);
+            HashMap<String, String> pipelineExecutionOutput = expressionResolverService.getPipelineExecutionOutput(pipelineExeId);
+            StepParameters stepParametersResolvedBeforeExecution
+                    = expressionResolverService.resolveStep(pipelineExecutionOutput, stepParameters, true);
 
-            int maxNumOfRetry = (stepParameters.getRetry() == 0) ? 1 : stepParameters.getRetry();
-
-            RetryTemplate retryTemplate = new RetryTemplate();
-
-            FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
-            fixedBackOffPolicy.setBackOffPeriod(stepParameters.getBackOffPeriod());
-
-            Map<Class<? extends Throwable>, Boolean> retryOnException = new HashMap<>();
-            retryOnException.put(APIPStepExecutionFailedException.class, true);
-            SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(maxNumOfRetry, retryOnException);
-
-            retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
-            retryTemplate.setRetryPolicy(retryPolicy);
+            RetryTemplate retryTemplate = prepareRetryTemplate(stepParameters);
 
             try {
                 retryTemplate.execute(arg0 -> {
                     stateService.setState(pipelineExeId, "running");
+
                     StepExecution stepExecution
-                            = executionService.executeStep(pipelineExeId, stepParameters);
-                    if(stepExecution.getCode()==200){
-                        saveOutputService.save(pipelineExeId, stepExecution.getOutput(), stepParameters.getName());
+                            = executionService.executeStep(pipelineExeId, stepParametersResolvedBeforeExecution);
+
+                    if(stepExecution.getCode() == 200){
+                        pipelineExecutionOutput.put(stepParametersResolvedBeforeExecution.getName(), stepExecution.getOutput());
+                        StepParameters stepParametersAfterExecution
+                                = expressionResolverService.resolveStep(
+                                        pipelineExecutionOutput, stepParametersResolvedBeforeExecution,false);
+                        String stepOutput = stepParametersAfterExecution.getSpec().getOutput();
+
+                        if(stepOutput != null) {
+                            log.info("expression in output of " + stepParametersAfterExecution.getName());
+                            saveOutputService.save(pipelineExeId, stepOutput, stepParametersAfterExecution.getName());
+                        }
+                        else {
+                            log.info("their is no expression in output of " + stepParametersAfterExecution.getName());
+                            saveOutputService.save(pipelineExeId, stepExecution.getOutput(), stepParametersAfterExecution.getName());
+                        }
                     }else{
-                        log.error("Failed to execute step! Message: " + stepExecution.getMsg());
+                        log.error("Failed to execute pipeline! Message: " + stepExecution.getMsg());
                         throw new APIPPipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName() + " failed!");
                     }
                     return null;
@@ -131,8 +136,7 @@ public class WorkflowService {
                 stateService.setState(pipelineExeId, "aborted");
                 throw new APIPPipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName() + " failed!");
             } catch (APIPYamlParsingException ex){
-                log.error("Failed to execute step! Failed to read yml file of connector! Message: " + ex.getMessage());
-                throw new APIPYamlParsingException("Error while parsing connector from yaml input!");
+                throw ex;
             } catch (IOException exx){
                 log.error("Failed to execute step! Retry mechanism failed! Message: " + exx.getMessage());
                 throw new APIPRetryMechanismException(exx);
@@ -141,5 +145,26 @@ public class WorkflowService {
 
         log.info("Pipeline successfully executed!");
         return stateService.setState(pipelineExeId, "finished");
+    }
+
+    public RetryTemplate prepareRetryTemplate(StepParameters stepParameters){
+
+        log.info("Preparing retry template!");
+
+        int maxNumOfRetry = (stepParameters.getRetry() == 0) ? 1 : stepParameters.getRetry();
+
+        RetryTemplate retryTemplate = new RetryTemplate();
+
+        FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+        fixedBackOffPolicy.setBackOffPeriod(stepParameters.getBackOffPeriod());
+
+        Map<Class<? extends Throwable>, Boolean> retryOnException = new HashMap<>();
+        retryOnException.put(APIPStepExecutionFailedException.class, true);
+        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(maxNumOfRetry, retryOnException);
+
+        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+        retryTemplate.setRetryPolicy(retryPolicy);
+
+        return retryTemplate;
     }
 }

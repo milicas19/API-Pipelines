@@ -1,14 +1,19 @@
 package com.example.projectfirst.pipeline.model;
 
+import com.example.projectfirst.pipeline.apiRequestHandler.Spec;
 import com.example.projectfirst.pipeline.apiRequestHandler.SpecGet;
 import com.example.projectfirst.pipeline.apiRequestHandler.SpecPost;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 
-@Value
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Jacksonized
 @Builder
 public class StepParameters {
@@ -25,4 +30,12 @@ public class StepParameters {
     Spec spec;
     int retry;
     long backOffPeriod;
+
+    public StepParameters(StepParameters stepParameters){
+        this.name = stepParameters.name;
+        this.type = stepParameters.type;
+        this.spec = stepParameters.spec;
+        this.retry = stepParameters.retry;
+        this.backOffPeriod = stepParameters.backOffPeriod;
+    }
 }
