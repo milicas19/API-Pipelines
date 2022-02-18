@@ -122,7 +122,25 @@ class PipelineServiceTest {
                 .hasMessageContaining("Pipeline with id pipeTest already exists!");
     }
 
+    @Test
+    void willThrowWhenYamlIsNotCorrect() {
+        // ymlPipeline missing "pipeline:" at the beginning
+        String ymlPipeline =
+                "    id: pipeTest\n" +
+                "    name: Pipeline\n" +
+                "    description: This is my pipeline\n" +
+                "    steps:\n" +
+                "    -   name: step1\n" +
+                "        type: API_GET\n" +
+                "        spec:\n" +
+                "            url: \"https://community-open-weather-map.p.rapidapi.com/weather?q=Belgrade%2C%20Serbia\"\n" +
+                "            connectorID: 1\n" +
+                "            output: <response_body|json.path(\"a\", response_body)>\n";
 
+        assertThatThrownBy(() -> underTest.savePipeline(ymlPipeline))
+                .isInstanceOf(APIPYamlParsingException.class)
+                .hasMessageContaining("Error while parsing pipeline from yaml input!");
+    }
 
     @Test
     void canUpdateConnector() {

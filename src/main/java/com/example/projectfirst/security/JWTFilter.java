@@ -1,5 +1,6 @@
 package com.example.projectfirst.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,10 +15,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
+@Slf4j
 public class JWTFilter extends OncePerRequestFilter {
 
     @Autowired
-    private JWTUtility jwtUtility;
+    private JWTUtil jwtUtil;
     @Autowired
     private MyUserDetailsService myUserDetailsService;
 
@@ -25,19 +27,21 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        log.info("Authenticating!");
         final String authorizationHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
 
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
             token = authorizationHeader.substring(7);
-            username = jwtUtility.getUsernameFromToken(token);
+            username = jwtUtil.getUsernameFromToken(token);
         }
 
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
 
-            if (jwtUtility.validateToken(token, userDetails)) {
+            if (jwtUtil.isTokenValid(token, userDetails)) {
+                log.info("Token is valid!");
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
                         = new UsernamePasswordAuthenticationToken(userDetails,
                         null, userDetails.getAuthorities());
@@ -50,7 +54,8 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         if(request.getRequestURI().equals("/signout")){
-            jwtUtility.revokeToken(token);
+            log.info("Logging out! Token revoked");
+            jwtUtil.revokeToken(token);
         }
 
         filterChain.doFilter(request, response);

@@ -3,11 +3,9 @@ package com.example.projectfirst.pipelineExecution.services;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 
 @Service
 @AllArgsConstructor
