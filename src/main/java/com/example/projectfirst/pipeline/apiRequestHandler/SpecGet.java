@@ -1,12 +1,12 @@
 package com.example.projectfirst.pipeline.apiRequestHandler;
 
-import com.example.projectfirst.pipeline.model.Spec;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
-@Value
+@Data
 @Jacksonized
 @Builder
 @JsonTypeName("API_GET")

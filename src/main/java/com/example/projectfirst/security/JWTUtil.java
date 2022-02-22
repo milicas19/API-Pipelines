@@ -13,12 +13,12 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
-public class JWTUtility{
+public class JWTUtil {
 
     @Autowired
     private JWTBlacklistRepository jwtBlacklistRepository;
 
-    public static final long JWT_TOKEN_VALIDITY = 10 * 60 * 60;
+    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -36,12 +36,12 @@ public class JWTUtility{
         return claimsResolver.apply(claims);
     }
 
-    private Claims getAllClaimsFromToken(String token) {
+    public Claims getAllClaimsFromToken(String token) {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
     }
 
 
-    private Boolean isTokenExpired(String token) {
+    public Boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
@@ -51,7 +51,7 @@ public class JWTUtility{
         return createToken(claims, userDetails.getUsername());
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    public String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
                 .signWith(SignatureAlgorithm.HS512, secretKey).compact();
@@ -62,11 +62,11 @@ public class JWTUtility{
         jwtBlacklistRepository.save(jwt);
     }
 
-    private Boolean isTokenRevoked(String token) {
+    public Boolean isTokenRevoked(String token) {
         return jwtBlacklistRepository.existsByJwtToken(token);
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token) && !isTokenRevoked(token));
     }

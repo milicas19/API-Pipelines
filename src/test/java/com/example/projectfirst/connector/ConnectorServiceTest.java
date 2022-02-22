@@ -3,6 +3,7 @@ package com.example.projectfirst.connector;
 import com.example.projectfirst.connector.exception.APIPConnectorAlreadyExistsException;
 import com.example.projectfirst.connector.exception.APIPConnectorNotFoundException;
 import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -105,7 +106,20 @@ class ConnectorServiceTest {
                 .hasMessageContaining("Connector with id " + id + " already exists!");
     }
 
+    @Test
+    void willThrowWhenYamlIsNotCorrect() {
+        // ymlConnector missing "connector:" at the beginning
+        String ymlConnector =
+                "    id: connTest\n" +
+                        "    name: Test Connector\n" +
+                        "    type: NO_AUTH\n" +
+                        "    spec: \n" +
+                        "        host: test-host";
 
+        assertThatThrownBy(() -> underTest.saveConnector(ymlConnector))
+                .isInstanceOf(APIPYamlParsingException.class)
+                .hasMessageContaining("Error while parsing connector from yaml input!");
+    }
 
     @Test
     void canUpdateConnector() {

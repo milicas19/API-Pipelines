@@ -70,8 +70,13 @@ public class ExecutionService {
     public StepExecution executeStep(String pipelineExeId, StepParameters stepParameters)
             throws APIPYamlParsingException, APIPStepExecutionFailedException {
 
-        log.info("Executing " + stepParameters.getName() + "!");
-        return this.stepHandlerMap.get(stepParameters.getType()).execute(stepParameters);
+        try {
+            log.info("Executing " + stepParameters.getName() + "!");
+            return this.stepHandlerMap.get(stepParameters.getType()).execute(stepParameters);
+        }catch (APIPYamlParsingException ex){
+            log.error("Failed to execute step! Failed to read yml file of connector! Message: " + ex.getMessage());
+            throw new APIPYamlParsingException("Error while parsing connector from yaml input!");
+        }
     }
 
 }

@@ -21,7 +21,8 @@ public class Connector {
             @JsonSubTypes.Type(value = SpecNoAuth.class, name = "NO_AUTH"),
             @JsonSubTypes.Type(value = SpecKey.class, name = "API_KEY"),
             @JsonSubTypes.Type(value = SpecUser.class, name = "API_USER"),
-            @JsonSubTypes.Type(value = SpecKeyUser.class, name = "API_KEY_USER")
+            @JsonSubTypes.Type(value = SpecKeyUser.class, name = "API_KEY_USER"),
+            @JsonSubTypes.Type(value = SpecKeyToken.class, name = "API_KEY_TOKEN")
     })
     Spec spec;
 }

@@ -1,5 +1,8 @@
 package com.example.projectfirst.security;
 
+import com.example.projectfirst.security.exceptions.APIPBadCredentialsException;
+import com.example.projectfirst.security.exceptions.APIPUserNotFound;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -9,12 +12,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class UserService {
 
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private JWTUtility jwtUtility;
+    private JWTUtil jwtUtil;
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
@@ -23,18 +27,22 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
 
-    public String saveUser(User user) {
+    public String saveUser(MyUser user) {
+        log.info("Saving user!");
         if(userRepository.existsByUsername(user.getUsername())){
-            return "User with this username already exists!";
+            log.error("User with this username already exists!");
+            throw new APIPUserNotFound("User with this username already exists!");
         }
         else{
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
+            log.info("Successfully signed!");
             return "Successfully signed!";
         }
     }
 
-    public JWTResponse getTokenForUser(JWTRequest jwtRequest) throws Exception{
+    public JWTResponse getTokenForUser(JWTRequest jwtRequest) throws APIPBadCredentialsException{
+        log.info("Getting token for user!");
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -43,15 +51,17 @@ public class UserService {
                     )
             );
         } catch (BadCredentialsException e) {
-            throw new Exception("Incorrect username or password!", e);
+            log.error("Incorrect username or password!");
+            throw new APIPBadCredentialsException("Incorrect username or password!");
         }
 
         final UserDetails userDetails
                 = myUserDetailsService.loadUserByUsername(jwtRequest.getUsername());
 
         final String token =
-                jwtUtility.generateToken(userDetails);
+                jwtUtil.generateToken(userDetails);
 
+        log.info("Token successfully obtained!");
         return  new JWTResponse(token);
     }
 
