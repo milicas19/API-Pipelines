@@ -6,6 +6,7 @@ import com.example.projectfirst.pipeline.model.Pipeline;
 import com.example.projectfirst.pipeline.model.StepParameters;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
+import com.example.projectfirst.pipelineExecution.StatusOfStepExecution;
 import com.example.projectfirst.pipelineExecution.StepExecution;
 import com.example.projectfirst.pipelineExecution.exception.APIPInitiateExecutionFailed;
 import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionFailedException;
@@ -15,6 +16,7 @@ import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFai
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
@@ -28,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 @Slf4j
 public class WorkflowService {
 
@@ -58,9 +61,10 @@ public class WorkflowService {
             Pipeline pipeline = pipelineMap.get("pipeline");
             PipelineExecutionCollection pipelineExecution = new PipelineExecutionCollection(pipeline.getId(), LocalDateTime.now(),
                     "prepared", pipeline.getSteps(), new HashMap<>(), 0);
-            pipelineExecutionRepository.save(pipelineExecution);
+
+            PipelineExecutionCollection execution = pipelineExecutionRepository.save(pipelineExecution);
             log.info("Initiation of pipeline execution successful!");
-            return pipelineExecution.getId();
+            return execution.getId();
         }catch (IOException e){
             throw new APIPInitiateExecutionFailed(e);
         }
@@ -80,6 +84,10 @@ public class WorkflowService {
         PipelineExecutionCollection pipelineExecution = pipelineExecutionOp.get();
 
         int numberOfExecutedSteps = pipelineExecution.getNumberOfExecutedSteps();
+        // if pipeline execution is paused and we want to resume it
+        if(numberOfExecutedSteps > 0){
+            stateService.setState(pipelineExeId, "running");
+        }
         int stepNum = numberOfExecutedSteps + 1;
         log.info("Executing pipeline from step" + stepNum + "!");
 
@@ -108,9 +116,9 @@ public class WorkflowService {
                     stateService.setState(pipelineExeId, "running");
 
                     StepExecution stepExecution
-                            = executionService.executeStep(pipelineExeId, stepParametersResolvedBeforeExecution);
+                            = executionService.executeStep(stepParametersResolvedBeforeExecution);
 
-                    if(stepExecution.getCode() == 200){
+                    if(stepExecution.getStatus().equals(StatusOfStepExecution.SUCCESS)){
                         pipelineExecutionOutput.put(stepParametersResolvedBeforeExecution.getName(), stepExecution.getOutput());
                         StepParameters stepParametersAfterExecution
                                 = expressionResolverService.resolveStep(
@@ -126,7 +134,6 @@ public class WorkflowService {
                             saveOutputService.save(pipelineExeId, stepExecution.getOutput(), stepParametersAfterExecution.getName());
                         }
                     }else{
-                        log.error("Failed to execute pipeline! Message: " + stepExecution.getMsg());
                         throw new APIPPipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName() + " failed!");
                     }
                     return null;

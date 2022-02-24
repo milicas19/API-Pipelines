@@ -1,5 +1,7 @@
 package com.example.projectfirst.security;
 
+import com.example.projectfirst.security.exceptions.APIPUserNotFound;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -7,9 +9,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
-import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class MyUserDetailsService implements UserDetailsService {
 
     @Autowired
@@ -17,13 +19,9 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<MyUser> user = userRepository.findByUsername(username);
-        if(user.isEmpty()) {
-            throw new UsernameNotFoundException("User with this username does not exists!");
-        }
-        else {
-            return new User(user.get().getUsername(), user.get().getPassword(), new ArrayList<>());
-        }
+        return userRepository.findByUsername(username)
+                .map(user -> new User(user.getUsername(), user.getPassword(), new ArrayList<>()))
+                .orElseThrow(() -> new APIPUserNotFound("User with this username does not exists!"));
     }
 
 

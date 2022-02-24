@@ -72,6 +72,8 @@ public class ExpressionResolverUtil {
             yamlOfStep = replaceExpressionWithResolvedExpression(yamlOfStep, expressionString, resolvedExpressionString);
             startIndex = beginIndex - 2 + resolvedExpressionString.length();
 
+            log.info("start index for next expr: " + startIndex);
+
             log.info("ymlOfStep: "+ yamlOfStep);
             resolvedExpressionInString.setStringWithResolvedExpression(yamlOfStep);
             resolvedExpressionInString.setStartIndexOfSearchForNextExpression(startIndex);

@@ -5,6 +5,7 @@ import com.example.projectfirst.connector.ConnectorService;
 import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.connector.model.Connector;
 import com.example.projectfirst.pipeline.model.StepParameters;
+import com.example.projectfirst.pipelineExecution.StatusOfStepExecution;
 import com.example.projectfirst.pipelineExecution.StepExecution;
 import com.example.projectfirst.pipelineExecution.exception.APIPExpressionResolverException;
 import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFailedException;
@@ -31,7 +32,6 @@ import static org.mockito.BDDMockito.given;
 class StepServiceTest {
 
     private StepService underTest;
-
     @Mock
     private ConnectorService connectorService;
     @Mock
@@ -39,20 +39,20 @@ class StepServiceTest {
     @Mock
     private Call remoteCall;
 
-
     @BeforeEach
     void setUp() {
         underTest = new StepService(connectorService, okHttpClient);
     }
 
     @Test
-    void canExecutePostRequest() throws IOException {
+    void canExecutePostRequestOnSuccess() throws IOException {
         StepParameters stepParameters
                 = new StepParameters("stepTest", "API_POST",
                 new SpecPost("https://some-url", "connTest", "some-body", "some-output"),
                 3, 2000);
 
-        String ymlConnector = "connector:\n" +
+        String ymlConnector =
+                "connector:\n" +
                 "    id: connTest\n" +
                 "    name: Test Connector\n" +
                 "    type: API_KEY\n" +
@@ -61,16 +61,16 @@ class StepServiceTest {
                 "        keyHeaderName: key-header\n" +
                 "        key: key";
 
-        String id = "connTest";
+        String connectorId = "connTest";
         LocalDateTime dateTime = LocalDateTime.now();
 
-        ConnectorCollection connectorTest = new ConnectorCollection(id, ymlConnector, dateTime, dateTime);
+        ConnectorCollection connectorTest = new ConnectorCollection(connectorId, ymlConnector, dateTime, dateTime);
 
         Request mockRequest = new Request.Builder()
                 .url(stepParameters.getSpec().getUrl())
                 .build();
 
-        Response response =  new Response.Builder()
+        Response responseSuccess =  new Response.Builder()
                 .request(mockRequest)
                 .protocol(Protocol.HTTP_1_0)
                 .code(200)
@@ -80,16 +80,61 @@ class StepServiceTest {
                         "{}"))
                 .build();
 
-        StepExecution expectedStepExecution = new StepExecution(200, "OK", "{}");
-
+        StepExecution expectedStepExecutionForSuccess = new StepExecution(StatusOfStepExecution.SUCCESS,"{}");
 
         given(connectorService.fetchConnector(any())).willReturn(connectorTest);
         given(okHttpClient.newCall(any())).willReturn(remoteCall);
-        given(remoteCall.execute()).willReturn(response);
+        given(remoteCall.execute()).willReturn(responseSuccess);
 
         StepExecution fetchedStepExecution = underTest.executePostRequest(stepParameters);
 
-        assertThat(fetchedStepExecution).isEqualTo(expectedStepExecution);
+        assertThat(fetchedStepExecution).isEqualTo(expectedStepExecutionForSuccess);
+    }
+
+    @Test
+    void canExecutePostRequestOnFailure() throws IOException {
+        StepParameters stepParameters
+                = new StepParameters("stepTest", "API_POST",
+                new SpecPost("https://some-url", "connTest", "some-body", "some-output"),
+                3, 2000);
+
+        String ymlConnector =
+                "connector:\n" +
+                "    id: connTest\n" +
+                "    name: Test Connector\n" +
+                "    type: API_KEY\n" +
+                "    spec: \n" +
+                "        host: some-host\n" +
+                "        keyHeaderName: key-header\n" +
+                "        key: key";
+
+        String connectorId = "connTest";
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        ConnectorCollection connectorTest = new ConnectorCollection(connectorId, ymlConnector, dateTime, dateTime);
+
+        Request mockRequest = new Request.Builder()
+                .url(stepParameters.getSpec().getUrl())
+                .build();
+
+        Response responseFailure =  new Response.Builder()
+                .request(mockRequest)
+                .protocol(Protocol.HTTP_1_0)
+                .code(400)
+                .body(ResponseBody.create(
+                        MediaType.parse("application/json"),
+                        ""))
+                .build();
+
+        StepExecution expectedStepExecutionForFailure = new StepExecution(StatusOfStepExecution.FAILURE,"");
+
+        given(connectorService.fetchConnector(any())).willReturn(connectorTest);
+        given(okHttpClient.newCall(any())).willReturn(remoteCall);
+        given(remoteCall.execute()).willReturn(responseFailure);
+
+        StepExecution fetchedStepExecution = underTest.executePostRequest(stepParameters);
+
+        assertThat(fetchedStepExecution).isEqualTo(expectedStepExecutionForFailure);
     }
 
     @Test
@@ -112,7 +157,8 @@ class StepServiceTest {
                 new SpecPost("https://some-url", "connTest", "some-body", "some-output"),
                 3, 2000);
 
-        String ymlConnector = "connector:\n" +
+        String ymlConnector =
+                "connector:\n" +
                 "    id: connTest\n" +
                 "    name: Test Connector\n" +
                 "    type: API_USER\n" +
@@ -122,10 +168,10 @@ class StepServiceTest {
                 "        username: username\n" +
                 "        password: pass";
 
-        String id = "connTest";
+        String connectorId = "connTest";
         LocalDateTime dateTime = LocalDateTime.now();
 
-        ConnectorCollection connectorTest = new ConnectorCollection(id, ymlConnector, dateTime, dateTime);
+        ConnectorCollection connectorTest = new ConnectorCollection(connectorId, ymlConnector, dateTime, dateTime);
 
         Request mockRequest = new Request.Builder()
                 .url(stepParameters.getSpec().getUrl())
@@ -146,18 +192,18 @@ class StepServiceTest {
         given(remoteCall.execute()).willThrow(IOException.class);
 
         assertThatThrownBy(() -> underTest.executePostRequest(stepParameters))
-                .isInstanceOf(APIPStepExecutionFailedException.class)
-                .isInstanceOf(IOException.class);
+                .isInstanceOf(APIPStepExecutionFailedException.class);
     }
 
     @Test
-    void canExecuteGetRequest() throws IOException {
+    void canExecuteGetRequestOnSuccess() throws IOException {
         StepParameters stepParameters
                 = new StepParameters("stepTest", "API_GET",
                 new SpecGet("https://some-url", "connTest", "some-output"),
                 3, 2000);
 
-        String ymlConnector = "connector:\n" +
+        String ymlConnector =
+                "connector:\n" +
                 "    id: connTest\n" +
                 "    name: Test Connector\n" +
                 "    type: API_KEY_USER\n" +
@@ -169,10 +215,10 @@ class StepServiceTest {
                 "        username: username\n" +
                 "        password: pass";
 
-        String id = "connTest";
+        String connectorId = "connTest";
         LocalDateTime dateTime = LocalDateTime.now();
 
-        ConnectorCollection connectorTest = new ConnectorCollection(id, ymlConnector, dateTime, dateTime);
+        ConnectorCollection connectorTest = new ConnectorCollection(connectorId, ymlConnector, dateTime, dateTime);
 
         Request mockRequest = new Request.Builder()
                 .url(stepParameters.getSpec().getUrl())
@@ -188,8 +234,7 @@ class StepServiceTest {
                         "{}"))
                 .build();
 
-        StepExecution expectedStepExecution = new StepExecution(200, "OK", "{}");
-
+        StepExecution expectedStepExecution = new StepExecution(StatusOfStepExecution.SUCCESS,"{}");
 
         given(connectorService.fetchConnector(any())).willReturn(connectorTest);
         given(okHttpClient.newCall(any())).willReturn(remoteCall);
@@ -201,13 +246,63 @@ class StepServiceTest {
     }
 
     @Test
+    void canExecuteGetRequestOnFailure() throws IOException {
+        StepParameters stepParameters
+                = new StepParameters("stepTest", "API_GET",
+                new SpecGet("https://some-url", "connTest", "some-output"),
+                3, 2000);
+
+        String ymlConnector =
+                "connector:\n" +
+                "    id: connTest\n" +
+                "    name: Test Connector\n" +
+                "    type: API_KEY_USER\n" +
+                "    spec: \n" +
+                "        host: some-host\n" +
+                "        keyHeaderName: key-header\n" +
+                "        key: key\n" +
+                "        userHeaderName: user-header\n" +
+                "        username: username\n" +
+                "        password: pass";
+
+        String connectorId = "connTest";
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        ConnectorCollection connectorTest = new ConnectorCollection(connectorId, ymlConnector, dateTime, dateTime);
+
+        Request mockRequest = new Request.Builder()
+                .url(stepParameters.getSpec().getUrl())
+                .build();
+
+        Response responseFailure =  new Response.Builder()
+                .request(mockRequest)
+                .protocol(Protocol.HTTP_1_0)
+                .code(400)
+                .body(ResponseBody.create(
+                        MediaType.parse("application/json"),
+                        ""))
+                .build();
+
+        StepExecution expectedStepExecutionForFailure = new StepExecution(StatusOfStepExecution.FAILURE,"");
+
+        given(connectorService.fetchConnector(any())).willReturn(connectorTest);
+        given(okHttpClient.newCall(any())).willReturn(remoteCall);
+        given(remoteCall.execute()).willReturn(responseFailure);
+
+        StepExecution fetchedStepExecution = underTest.executeGetRequest(stepParameters);
+
+        assertThat(fetchedStepExecution).isEqualTo(expectedStepExecutionForFailure);
+    }
+
+    @Test
     void willThrowWhenExecuteOfGetRequestFails() throws IOException {
         StepParameters stepParameters
                 = new StepParameters("stepTest", "API_GET",
                 new SpecGet("https://some-url", "connTest", "some-output"),
                 3, 2000);
 
-        String ymlConnector = "connector:\n" +
+        String ymlConnector =
+                "connector:\n" +
                 "    id: connTest\n" +
                 "    name: Test Connector\n" +
                 "    type: API_KEY_TOKEN\n" +
@@ -217,10 +312,10 @@ class StepServiceTest {
                 "        key: key\n" +
                 "        token: token";
 
-        String id = "connTest";
+        String connectorId = "connTest";
         LocalDateTime dateTime = LocalDateTime.now();
 
-        ConnectorCollection connectorTest = new ConnectorCollection(id, ymlConnector, dateTime, dateTime);
+        ConnectorCollection connectorTest = new ConnectorCollection(connectorId, ymlConnector, dateTime, dateTime);
 
         Request mockRequest = new Request.Builder()
                 .url(stepParameters.getSpec().getUrl())
@@ -241,39 +336,39 @@ class StepServiceTest {
         given(remoteCall.execute()).willThrow(IOException.class);
 
         assertThatThrownBy(() -> underTest.executeGetRequest(stepParameters))
-                .isInstanceOf(APIPStepExecutionFailedException.class)
-                .isInstanceOf(IOException.class);
+                .isInstanceOf(APIPStepExecutionFailedException.class);
     }
 
     @Test
     void canGetConnectorFromYml() throws APIPYamlParsingException {
-        String ymlConnector = "connector:\n" +
+        String ymlConnector =
+                "connector:\n" +
                 "    id: connTest\n" +
                 "    name: Test Connector\n" +
                 "    type: NO_AUTH\n" +
                 "    spec: \n" +
                 "        host: test-host";
 
-        String id = "connTest";
-        String name = "Test Connector";
-        String type = "NO_AUTH";
+        String connectorId = "connTest";
+        String connectorName = "Test Connector";
+        String connectorType = "NO_AUTH";
         String host = "test-host";
 
         LocalDateTime dateTime = LocalDateTime.now();
-        ConnectorCollection connectorTest = new ConnectorCollection(id, ymlConnector, dateTime, dateTime);
+        ConnectorCollection connectorTest = new ConnectorCollection(connectorId, ymlConnector, dateTime, dateTime);
 
         given(connectorService.fetchConnector(any())).willReturn(connectorTest);
 
-        Connector fetchedConnector = underTest.getConnectorFromYml(id);
+        Connector fetchedConnector = underTest.getConnectorFromYml(connectorId);
 
-        assertThat(fetchedConnector.getId()).isEqualTo(id);
-        assertThat(fetchedConnector.getName()).isEqualTo(name);
-        assertThat(fetchedConnector.getType()).isEqualTo(type);
+        assertThat(fetchedConnector.getId()).isEqualTo(connectorId);
+        assertThat(fetchedConnector.getName()).isEqualTo(connectorName);
+        assertThat(fetchedConnector.getType()).isEqualTo(connectorType);
         assertThat(fetchedConnector.getSpec().getHost()).isEqualTo(host);
     }
 
     @Test
-    void willThrowWhenYamlIsNotCorrect(){
+    void willThrowWhenYamlOfConnectorIsNotCorrect(){
         // ymlConnector missing "connector:" at the beginning
         String ymlConnector =
                 "    id: connTest\n" +
@@ -281,13 +376,14 @@ class StepServiceTest {
                 "    type: NO_AUTH\n" +
                 "    spec: \n" +
                 "        host: test-host";
-        String id = "connTest";
+        String connectorId = "connTest";
         LocalDateTime dateTime = LocalDateTime.now();
-        ConnectorCollection connectorTest = new ConnectorCollection(id, ymlConnector, dateTime, dateTime);
+
+        ConnectorCollection connectorTest = new ConnectorCollection(connectorId, ymlConnector, dateTime, dateTime);
 
         given(connectorService.fetchConnector(any())).willReturn(connectorTest);
 
-        assertThatThrownBy(() -> underTest.getConnectorFromYml(id))
+        assertThatThrownBy(() -> underTest.getConnectorFromYml(connectorId))
                 .isInstanceOf(APIPYamlParsingException.class)
                 .hasMessageContaining("Error while parsing connector from yaml input!");
     }

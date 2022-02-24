@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
 @Data
+@AllArgsConstructor
 @Jacksonized
 @Builder
 @JsonTypeName("API_GET")

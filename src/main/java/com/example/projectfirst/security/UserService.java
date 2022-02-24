@@ -1,7 +1,8 @@
 package com.example.projectfirst.security;
 
 import com.example.projectfirst.security.exceptions.APIPBadCredentialsException;
-import com.example.projectfirst.security.exceptions.APIPUserNotFound;
+import com.example.projectfirst.security.exceptions.APIPUserAlreadyExists;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,9 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 @Slf4j
 public class UserService {
-
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -26,18 +27,17 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
     public String saveUser(MyUser user) {
         log.info("Saving user!");
         if(userRepository.existsByUsername(user.getUsername())){
             log.error("User with this username already exists!");
-            throw new APIPUserNotFound("User with this username already exists!");
+            throw new APIPUserAlreadyExists("User with this username already exists!");
         }
         else{
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
-            log.info("Successfully signed!");
-            return "Successfully signed!";
+            log.info("Successfully signed in!");
+            return "Successfully signed in!";
         }
     }
 
@@ -64,6 +64,4 @@ public class UserService {
         log.info("Token successfully obtained!");
         return  new JWTResponse(token);
     }
-
-
 }

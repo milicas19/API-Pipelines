@@ -26,10 +26,6 @@ import java.util.Set;
 public class ExecutionService {
 
     @Autowired
-    private SaveOutputService saveOutputService;
-    @Autowired
-    private StateService stateService;
-    @Autowired
     private AutowireCapableBeanFactory beanFactory;
     private final Map<String, StepHandler> stepHandlerMap = new HashMap<>();
 
@@ -67,7 +63,7 @@ public class ExecutionService {
         }
     }
 
-    public StepExecution executeStep(String pipelineExeId, StepParameters stepParameters)
+    public StepExecution executeStep(StepParameters stepParameters)
             throws APIPYamlParsingException, APIPStepExecutionFailedException {
 
         try {
@@ -78,5 +74,4 @@ public class ExecutionService {
             throw new APIPYamlParsingException("Error while parsing connector from yaml input!");
         }
     }
-
 }

@@ -1,13 +1,17 @@
 package com.example.projectfirst.pipelineExecution;
 
 import com.example.projectfirst.pipeline.model.StepParameters;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PipelineExecutionCollection {
     @Id
     private String id;
