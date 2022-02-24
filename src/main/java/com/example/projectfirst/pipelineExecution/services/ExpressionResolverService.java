@@ -44,7 +44,9 @@ public class ExpressionResolverService {
 
 
             context.registerFunction("jsonPath", method);
+
             context.setVariable("output", pipelineExecutionOutput);
+
             context.addPropertyAccessor(new MapAccessor());
 
             int startIndex = 0;
@@ -71,6 +73,7 @@ public class ExpressionResolverService {
     public HashMap<String, String> getPipelineExecutionOutput(String pipelineExeId) {
         return pipelineExecutionRepository.findById(pipelineExeId)
                 .map(PipelineExecutionCollection::getOutput)
-                .orElseThrow(() -> new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!"));
+                .orElseThrow(() -> new APIPPipelineExecutionNotFoundException(
+                        "Could not find pipeline execution with id " + pipelineExeId + "!"));
     }
 }

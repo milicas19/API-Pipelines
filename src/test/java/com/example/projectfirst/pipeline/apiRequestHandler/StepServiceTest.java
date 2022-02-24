@@ -364,6 +364,7 @@ class StepServiceTest {
         assertThat(fetchedConnector.getId()).isEqualTo(connectorId);
         assertThat(fetchedConnector.getName()).isEqualTo(connectorName);
         assertThat(fetchedConnector.getType()).isEqualTo(connectorType);
+
         assertThat(fetchedConnector.getSpec().getHost()).isEqualTo(host);
     }
 
@@ -384,6 +385,7 @@ class StepServiceTest {
         given(connectorService.fetchConnector(any())).willReturn(connectorTest);
 
         assertThatThrownBy(() -> underTest.getConnectorFromYml(connectorId))
+
                 .isInstanceOf(APIPYamlParsingException.class)
                 .hasMessageContaining("Error while parsing connector from yaml input!");
     }

@@ -10,7 +10,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
 class ExpressionResolverUtilTest {
 
     @Test
@@ -139,7 +138,7 @@ class ExpressionResolverUtilTest {
     }
 
     @Test
-    void willThrowWhenExpressionNotCorrect(){
+    void willThrowWhenExpressionNotCorrect() {
         // missing ')' at the end of expression
         String yamlOfStep = "name: step1\n" +
                 "        type: API_GET\n" +
@@ -158,13 +157,12 @@ class ExpressionResolverUtilTest {
         context.registerFunction("jsonPath", method);
         HashMap<String, String> pipelineExecutionOutput = new HashMap<>();
         pipelineExecutionOutput.put("step1", "{\"main\":{\"msg\": \"step1-test-output\",\"code\": \"success\"}}");
-        context.setVariable("output",pipelineExecutionOutput);
+        context.setVariable("output", pipelineExecutionOutput);
         context.addPropertyAccessor(new MapAccessor());
 
         assertThatThrownBy(()
-                -> ExpressionResolverUtil.findExpressionAndReplace(yamlOfStep, 0, context,true))
+                -> ExpressionResolverUtil.findExpressionAndReplace(yamlOfStep, 0, context, true))
                 .isInstanceOf(APIPExpressionResolverException.class)
                 .hasMessageContaining("Could not parse expression: " + exprString);
-
     }
 }
