@@ -123,18 +123,28 @@ public class WorkflowService {
                         StepParameters stepParametersAfterExecution
                                 = expressionResolverService.resolveStep(
                                         pipelineExecutionOutput, stepParametersResolvedBeforeExecution,false);
-                        String stepOutput = stepParametersAfterExecution.getSpec().getOutput();
+                        String stepOutputAfter = stepParametersAfterExecution.getSpec().getOutput();
+                        String stepOutputAtTheBeginning = stepParameters.getSpec().getOutput();
 
-                        if(stepOutput != null) {
-                            log.info("expression in output of " + stepParametersAfterExecution.getName());
-                            saveOutputService.save(pipelineExeId, stepOutput, stepParametersAfterExecution.getName());
-                        }
-                        else {
+                        log.info("step output at the beginning: " + stepOutputAtTheBeginning);
+                        log.info("step output after resolving: " + stepOutputAfter);
+
+                        if(stepOutputAfter == null) {
                             log.info("their is no expression in output of " + stepParametersAfterExecution.getName());
-                            saveOutputService.save(pipelineExeId, stepExecution.getOutput(), stepParametersAfterExecution.getName());
+                            saveOutputService.save(pipelineExeId, stepExecution.getOutput(),
+                                    stepParametersAfterExecution.getName());
+                        } else {
+                            if (stepOutputAfter.equals(stepOutputAtTheBeginning)) {
+                                throw new APIPPipelineExecutionFailedException("Pipeline execution failed: "
+                                        + stepParameters.getName() + " failed! Unresolved expression in output!");
+                            } else {
+                                log.info("expression in output of " + stepParametersAfterExecution.getName());
+                                saveOutputService.save(pipelineExeId, stepOutputAfter, stepParametersAfterExecution.getName());
+                            }
                         }
                     }else{
-                        throw new APIPPipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName() + " failed!");
+                        throw new APIPPipelineExecutionFailedException("Pipeline execution failed: "
+                                + stepParameters.getName() + " failed!");
                     }
                     return null;
                 });
@@ -172,6 +182,7 @@ public class WorkflowService {
         retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
         retryTemplate.setRetryPolicy(retryPolicy);
 
+        log.info("Retry template prepared!");
         return retryTemplate;
     }
 }

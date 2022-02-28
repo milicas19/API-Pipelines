@@ -165,7 +165,7 @@ class WorkflowServiceTest {
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
         given(stateService.checkState(any())).willReturn("prepared", "running");
         given(expressionResolverService.resolveStep(any(),any(),anyBoolean())).willReturn(stepsBefore.get(0),
-                stepsAfter.get(0), stepsBefore.get(1), stepsAfter.get(1));
+                stepsAfter.get(0), stepsAfter.get(1), stepsAfter.get(1));
 
         pipelineExecutionTest.setState("running");
         given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
@@ -177,9 +177,9 @@ class WorkflowServiceTest {
                 = new StepExecution(StatusOfStepExecution.SUCCESS, "step1-test-output");
         given(executionService.executeStep(any())).willReturn(firstStepExecution, secondStepExecution);
 
-        outputAfterFirstStep.put("step2", "step1-test-output");
+        outputAfterFirstStep.put("step1", "step1-test-output");
         pipelineExecutionTest.setOutput(outputAfterFirstStep);
-        pipelineExecutionTest.setSteps(stepsAfter);
+        pipelineExecutionTest.setState("finished");
         given(stateService.setState(eq(pipelineExecutionTestId), eq("finished"))).willReturn(pipelineExecutionTest);
 
         PipelineExecutionCollection pipelineExecution = underTest.executePipelineSteps(pipelineExecutionTestId);
@@ -279,6 +279,53 @@ class WorkflowServiceTest {
         assertThat(capturedStepName).isEqualTo(stepsAfter.get(1).getName());
 
         assertThat(pipelineExecution).isEqualTo(pipelineExecutionTest);
+    }
+
+    @Test
+    void willThrowWhenExpressionInOutputIsNotResolved() throws APIPYamlParsingException, APIPStepExecutionFailedException, APIPRetryMechanismException {
+        String pipelineId = "pipeTest";
+        String pipelineExecutionTestId = "pipeExeTest";
+
+        HashMap<String, String> output = new HashMap<>();
+        HashMap<String, String> outputAfterFirstStep = new HashMap<>();
+        outputAfterFirstStep.put("step1", "step1-test-output");
+
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        List<StepParameters> stepsBefore = new ArrayList<>();
+        List<StepParameters> stepsAfter = new ArrayList<>();
+        StepParameters stepParameters = new StepParameters("step1", "API_GET",
+                new SpecGet("https://some-url",
+                        "connID",
+                        "{#jsonPath(output.step1, '$.msg')}"),
+                2, 3000);
+        StepParameters resolvedStepParameter = new StepParameters("step1", "API_GET",
+                new SpecGet("https://some-url",
+                        "connID",
+                        "{#jsonPath(output.step1, '$.msg')}"),
+                2, 3000);
+        stepsBefore.add(stepParameters);
+        stepsAfter.add(resolvedStepParameter);
+
+        PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
+                pipelineId, dateTime, "prepared", stepsBefore, output, 0);
+
+        given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
+        given(stateService.checkState(any())).willReturn("prepared");
+        given(expressionResolverService.resolveStep(any(),any(),anyBoolean())).willReturn(stepsBefore.get(0),
+                stepsAfter.get(0));
+
+        pipelineExecutionTest.setState("running");
+        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
+
+        StepExecution stepExecution
+                = new StepExecution(StatusOfStepExecution.SUCCESS, "");
+        given(executionService.executeStep(any())).willReturn(stepExecution);
+
+        assertThatThrownBy(() -> underTest.executePipelineSteps(pipelineExecutionTestId))
+                .isInstanceOf(APIPPipelineExecutionFailedException.class)
+                .hasMessageContaining("Pipeline execution failed: "
+                        + stepParameters.getName() + " failed! Unresolved expression in output!");
     }
 
     @Test

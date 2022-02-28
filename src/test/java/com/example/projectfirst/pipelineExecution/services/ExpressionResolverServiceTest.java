@@ -74,7 +74,7 @@ class ExpressionResolverServiceTest {
 
         assertThatThrownBy(() -> underTest.resolveStep(pipelineExecutionOutput, stepParameters, true))
                 .isInstanceOf(APIPExpressionResolverException.class)
-                .hasMessageContaining("Expression can not be resolved! Something wrong with the input!");
+                .hasMessageContaining("Expression is not closed!");
     }
 
     @Test
