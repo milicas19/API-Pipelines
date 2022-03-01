@@ -1,2 +1,8 @@
 jwt:
   secret: somesecretkey#199
+
+spring:
+  data:
+    mongodb:
+      port: 27017
+      host: "${MONGO_HOST}"

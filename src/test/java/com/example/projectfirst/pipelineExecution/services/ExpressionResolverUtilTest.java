@@ -97,7 +97,7 @@ class ExpressionResolverUtilTest {
         assertThatThrownBy(()
                 -> ExpressionResolverUtil.findExpressionAndReplace(yamlOfStep, 0, new StandardEvaluationContext(),true))
                 .isInstanceOf(APIPExpressionResolverException.class)
-                .hasMessageContaining("Expression can not be resolved! Something wrong with the input!");
+                .hasMessageContaining("Expression is not closed!");
 
     }
 
