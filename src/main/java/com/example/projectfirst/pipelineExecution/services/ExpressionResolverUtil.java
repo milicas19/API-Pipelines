@@ -46,7 +46,7 @@ public class ExpressionResolverUtil {
             return null;
 
         if(endIndex == -1)
-            throw new APIPExpressionResolverException("Expression can not be resolved! Something wrong with the input!");
+            throw new APIPExpressionResolverException("Expression is not closed!");
 
         ResolvedExpression resolvedExpressionInString = new ResolvedExpression(yamlOfStep, endIndex + 1);
 
@@ -71,6 +71,8 @@ public class ExpressionResolverUtil {
 
             yamlOfStep = replaceExpressionWithResolvedExpression(yamlOfStep, expressionString, resolvedExpressionString);
             startIndex = beginIndex - 2 + resolvedExpressionString.length();
+
+            log.info("start index for next expr: " + startIndex);
 
             log.info("ymlOfStep: "+ yamlOfStep);
             resolvedExpressionInString.setStringWithResolvedExpression(yamlOfStep);

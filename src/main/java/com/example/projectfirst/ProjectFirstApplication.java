@@ -13,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableRetry
 @EnableScheduling
 public class ProjectFirstApplication{
-
 	public static void main(String[] args) {
 		SpringApplication.run(ProjectFirstApplication.class, args);
 	}
@@ -27,5 +26,4 @@ public class ProjectFirstApplication{
 	public OkHttpClient okHttpClient() {
 		return new OkHttpClient();
 	}
-
 }

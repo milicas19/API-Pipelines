@@ -48,7 +48,9 @@ public class PipelineService implements PipelineInterface{
             if(pipelineRepository.existsById(id)){
                 throw new APIPPipelineAlreadyExistsException("Pipeline with id " + id + " already exists!");
             }
-            PipelineCollection pipeline = new PipelineCollection(id,yaml, LocalDateTime.now(), LocalDateTime.now());
+
+            LocalDateTime dateTime = LocalDateTime.now();
+            PipelineCollection pipeline = new PipelineCollection(id,yaml, dateTime, dateTime);
             pipelineRepository.save(pipeline);
             log.info("Pipeline with id " + id + " successfully saved!");
             return pipeline;

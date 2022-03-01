@@ -41,15 +41,17 @@ public class ConnectorService implements ConnectorInterface{
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
         try {
-            Map<String, Connector> connectorMap = objectMapper.readValue(yaml,
-                    new TypeReference<>(){});
+            Map<String, Connector> connectorMap = objectMapper.readValue(yaml, new TypeReference<>(){});
             Connector conn = connectorMap.get("connector");
             String id = conn.getId();
 
             if(connectorRepository.existsById(id)){
                 throw new APIPConnectorAlreadyExistsException("Connector with id " + id + " already exists!");
             }
-            ConnectorCollection connector = new ConnectorCollection(id,yaml, LocalDateTime.now(), LocalDateTime.now());
+
+            LocalDateTime dateTime = LocalDateTime.now();
+            ConnectorCollection connector = new ConnectorCollection(id, yaml, dateTime, dateTime);
+
             connectorRepository.save(connector);
             log.info("Connector with id: " + id + " successfully saved!");
             return connector;

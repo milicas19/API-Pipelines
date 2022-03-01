@@ -6,7 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class StepExecution {
-    Integer code;
-    String msg;
+    StatusOfStepExecution status;
     String output;
 }

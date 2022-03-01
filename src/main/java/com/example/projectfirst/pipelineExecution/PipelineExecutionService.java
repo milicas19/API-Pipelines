@@ -77,7 +77,7 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
         }
         if(!pipelineExecution.get().getState().equals("paused")) {
             log.error("Pipeline execution not paused!");
-            throw new APIPPipelineNotPausedException("Pipeline with id " + id + " is not paused!");
+            throw new APIPPipelineNotPausedException("Pipeline execution with id " + id + " is not paused!");
         }
 
         return workflowService.executePipelineSteps(id);

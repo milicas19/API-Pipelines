@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 class PipelineServiceTest {
 
     private PipelineService underTest;
-
     @Mock
     private PipelineRepository pipelineRepository;
 
@@ -32,14 +31,15 @@ class PipelineServiceTest {
     }
 
     @Test
-    void canFetchAllConnectors() {
+    void canFetchAllPipelines() {
         underTest.fetchAllPipelines();
         verify(pipelineRepository).findAll();
     }
 
     @Test
-    void canFetchConnector() {
-        String ymlPipeline = "pipeline:\n" +
+    void canFetchPipeline() {
+        String ymlPipeline =
+                "pipeline:\n" +
                 "    id: pipeTest\n" +
                 "    name: Pipeline\n" +
                 "    description: This is my pipeline\n" +
@@ -47,75 +47,80 @@ class PipelineServiceTest {
                 "    -   name: step1\n" +
                 "        type: API_GET\n" +
                 "        spec:\n" +
-                "            url: \"https://community-open-weather-map.p.rapidapi.com/weather?q=Belgrade%2C%20Serbia\"\n" +
-                "            connectorID: 1\n" +
-                "            output: <response_body|json.path(\"a\", response_body)>\n";
+                "            url: \"https://some-url\"\n" +
+                "            connectorID: connTest\n" +
+                "            output: some-output\n";
         LocalDateTime dateTime = LocalDateTime.now();
-        String id = "pipeTest";
-        PipelineCollection pipelineTest = new PipelineCollection(id, ymlPipeline, dateTime, dateTime);
+        String pipeId = "pipeTest";
 
+        PipelineCollection pipelineTest = new PipelineCollection(pipeId, ymlPipeline, dateTime, dateTime);
         given(pipelineRepository.findById(any())).willReturn(Optional.of(pipelineTest));
 
-        PipelineCollection fetchedPipeline = underTest.fetchPipeline(id);
+        PipelineCollection fetchedPipeline = underTest.fetchPipeline(pipeId);
 
-        assertThat(fetchedPipeline.getYmlFile()).isEqualTo(pipelineTest.getYmlFile());
+        assertThat(fetchedPipeline).isEqualTo(pipelineTest);
     }
 
     @Test
-    void willThrowWhenConnectorNotFound(){
-        String id = "pipeTest";
+    void willThrowWhenPipelineNotFound(){
+        String pipeId = "pipeTest";
 
-        given(pipelineRepository.findById(any()))
-                .willReturn(Optional.empty());
+        given(pipelineRepository.findById(any())).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> underTest.fetchPipeline(id))
+        assertThatThrownBy(() -> underTest.fetchPipeline(pipeId))
                 .isInstanceOf(APIPPipelineNotFoundException.class)
-                .hasMessageContaining("Could not find pipeline with id " + id + "!");
+                .hasMessageContaining("Could not find pipeline with id " + pipeId + "!");
 
     }
 
 
     @Test
-    void canSaveConnector() throws APIPYamlParsingException {
-        String ymlPipeline = "pipeline:\n" +
-                "    id: pipeTest\n" +
-                "    name: Pipeline\n" +
-                "    description: This is my pipeline\n" +
-                "    steps:\n" +
-                "    -   name: step1\n" +
-                "        type: API_GET\n" +
-                "        spec:\n" +
-                "            url: \"https://community-open-weather-map.p.rapidapi.com/weather?q=Belgrade%2C%20Serbia\"\n" +
-                "            connectorID: 1\n" +
-                "            output: <response_body|json.path(\"a\", response_body)>\n";
+    void canSavePipeline() throws APIPYamlParsingException {
+        String ymlPipeline =
+                "pipeline:\n" +
+                        "    id: pipeTest\n" +
+                        "    name: Pipeline\n" +
+                        "    description: This is my pipeline\n" +
+                        "    steps:\n" +
+                        "    -   name: step1\n" +
+                        "        type: API_GET\n" +
+                        "        spec:\n" +
+                        "            url: \"https://some-url\"\n" +
+                        "            connectorID: connTest\n" +
+                        "            output: some-output\n";
         LocalDateTime dateTime = LocalDateTime.now();
-        String id = "pipeTest";
-        PipelineCollection pipelineTest = new PipelineCollection(id, ymlPipeline, dateTime, dateTime);
-
-        given(pipelineRepository.save(any()))
-                .willReturn(pipelineTest);
+        String pipeId = "pipeTest";
+        PipelineCollection pipelineTest = new PipelineCollection(pipeId, ymlPipeline, dateTime, dateTime);
 
         PipelineCollection savedPipeline = underTest.savePipeline(ymlPipeline);
 
+        ArgumentCaptor<PipelineCollection> connectorArgumentCaptor = ArgumentCaptor.forClass(PipelineCollection.class);
+        verify(pipelineRepository).save(connectorArgumentCaptor.capture());
+
+        PipelineCollection capturedPipeline = connectorArgumentCaptor.getValue();
+
+        assertThat(capturedPipeline.getId()).isEqualTo(pipelineTest.getId());
+        assertThat(capturedPipeline.getYmlFile()).isEqualTo(pipelineTest.getYmlFile());
+        assertThat(savedPipeline.getId()).isEqualTo(pipelineTest.getId());
         assertThat(savedPipeline.getYmlFile()).isEqualTo(pipelineTest.getYmlFile());
     }
 
     @Test
     void willThrowWhenIdIsTaken(){
-        String ymlPipeline = "pipeline:\n" +
-                "    id: pipeTest\n" +
-                "    name: Pipeline\n" +
-                "    description: This is my pipeline\n" +
-                "    steps:\n" +
-                "    -   name: step1\n" +
-                "        type: API_GET\n" +
-                "        spec:\n" +
-                "            url: \"https://community-open-weather-map.p.rapidapi.com/weather?q=Belgrade%2C%20Serbia\"\n" +
-                "            connectorID: 1\n" +
-                "            output: <response_body|json.path(\"a\", response_body)>\n";
+        String ymlPipeline =
+                "pipeline:\n" +
+                        "    id: pipeTest\n" +
+                        "    name: Pipeline\n" +
+                        "    description: This is my pipeline\n" +
+                        "    steps:\n" +
+                        "    -   name: step1\n" +
+                        "        type: API_GET\n" +
+                        "        spec:\n" +
+                        "            url: \"https://some-url\"\n" +
+                        "            connectorID: connTest\n" +
+                        "            output: some-output\n";
 
-        given(pipelineRepository.existsById(anyString()))
-                .willReturn(true);
+        given(pipelineRepository.existsById(anyString())).willReturn(true);
 
         assertThatThrownBy(() -> underTest.savePipeline(ymlPipeline))
                 .isInstanceOf(APIPPipelineAlreadyExistsException.class)
@@ -126,16 +131,16 @@ class PipelineServiceTest {
     void willThrowWhenYamlIsNotCorrect() {
         // ymlPipeline missing "pipeline:" at the beginning
         String ymlPipeline =
-                "    id: pipeTest\n" +
-                "    name: Pipeline\n" +
-                "    description: This is my pipeline\n" +
-                "    steps:\n" +
-                "    -   name: step1\n" +
-                "        type: API_GET\n" +
-                "        spec:\n" +
-                "            url: \"https://community-open-weather-map.p.rapidapi.com/weather?q=Belgrade%2C%20Serbia\"\n" +
-                "            connectorID: 1\n" +
-                "            output: <response_body|json.path(\"a\", response_body)>\n";
+                        "    id: pipeTest\n" +
+                        "    name: Pipeline\n" +
+                        "    description: This is my pipeline\n" +
+                        "    steps:\n" +
+                        "    -   name: step1\n" +
+                        "        type: API_GET\n" +
+                        "        spec:\n" +
+                        "            url: \"https://some-url\"\n" +
+                        "            connectorID: connTest\n" +
+                        "            output: some-output\n";
 
         assertThatThrownBy(() -> underTest.savePipeline(ymlPipeline))
                 .isInstanceOf(APIPYamlParsingException.class)
@@ -144,61 +149,59 @@ class PipelineServiceTest {
 
     @Test
     void canUpdateConnector() {
-        String ymlPipeline = "pipeline:\n" +
-                "    id: pipeTest\n" +
-                "    name: Pipeline\n" +
-                "    description: This is my pipeline\n" +
-                "    steps:\n" +
-                "    -   name: step1\n" +
-                "        type: API_GET\n" +
-                "        spec:\n" +
-                "            url: \"https://community-open-weather-map.p.rapidapi.com/weather?q=Belgrade%2C%20Serbia\"\n" +
-                "            connectorID: 1\n" +
-                "            output: <response_body|json.path(\"a\", response_body)>\n";
-        String newYmlPipeline = "pipeline:\n" +
-                "    id: pipeTest\n" +
-                "    name: Pipeline\n" +
-                "    description: This is my pipeline\n" +
-                "    steps:\n" +
-                "    -   name: step1\n" +
-                "        type: API_GET\n" +
-                "        spec:\n" +
-                "            url: \"https://community-open-weather-map.p.rapidapi.com/weather?q=Belgrade%2C%20Serbia\"\n" +
-                "            connectorID: 1\n" +
-                "            output: <response_body|json.path(\"a\", response_body)>\n" +
-                "        retry: 3\n" +
-                "        backOffPeriod: 2000";
+        String ymlPipeline =
+                "pipeline:\n" +
+                        "    id: pipeTest\n" +
+                        "    name: Pipeline\n" +
+                        "    description: This is my pipeline\n" +
+                        "    steps:\n" +
+                        "    -   name: step1\n" +
+                        "        type: API_GET\n" +
+                        "        spec:\n" +
+                        "            url: \"https://some-url\"\n" +
+                        "            connectorID: connTest\n" +
+                        "            output: some-output\n";
+        String newYmlPipeline =
+                "pipeline:\n" +
+                        "    id: pipeTest\n" +
+                        "    name: Pipeline\n" +
+                        "    description: This is my pipeline\n" +
+                        "    steps:\n" +
+                        "    -   name: step1\n" +
+                        "        type: API_GET\n" +
+                        "        spec:\n" +
+                        "            url: \"https://some-url\"\n" +
+                        "            connectorID: connTest\n" +
+                        "            output: some-output\n" +
+                        "        retry: 3\n" +
+                        "        backOffPeriod: 2000";
         LocalDateTime dateTime = LocalDateTime.now();
-        String id = "pipeTest";
-        PipelineCollection pipelineTest = new PipelineCollection(id, ymlPipeline, dateTime, dateTime);
+        String pipeId = "pipeTest";
+        PipelineCollection pipelineTest = new PipelineCollection(pipeId, ymlPipeline, dateTime, dateTime);
 
-        given(pipelineRepository.findById(any()))
-                .willReturn(Optional.of(pipelineTest));
+        given(pipelineRepository.findById(any())).willReturn(Optional.of(pipelineTest));
 
         pipelineTest.setYmlFile(newYmlPipeline);
         pipelineTest.setModificationDate(LocalDateTime.now());
+        given(pipelineRepository.save(any())).willReturn(pipelineTest);
 
-        given(pipelineRepository.save(any()))
-                .willReturn(pipelineTest);
+        PipelineCollection updatedPipeline = underTest.updatePipeline(newYmlPipeline, pipeId);
 
-        PipelineCollection updatedPipeline = underTest.updatePipeline(newYmlPipeline, id);
-
-        assertThat(updatedPipeline.getYmlFile()).isEqualTo(newYmlPipeline);
+        assertThat(updatedPipeline).isEqualTo(pipelineTest);
     }
 
     @Test
     void canDeleteConnector() {
-        String id = "pipeTest";
-        underTest.deletePipeline(id);
+        String pipeId = "pipeTest";
+        underTest.deletePipeline(pipeId);
 
-        ArgumentCaptor<String> idArgumentCaptor
-                = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(pipelineRepository).deleteById(idArgumentCaptor.capture());
 
         String capturedId = idArgumentCaptor.getValue();
 
-        assertThat(capturedId).isEqualTo(id);
+        assertThat(capturedId).isEqualTo(pipeId);
     }
 
     @Test

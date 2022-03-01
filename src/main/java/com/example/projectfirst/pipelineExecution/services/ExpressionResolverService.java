@@ -9,6 +9,7 @@ import com.example.projectfirst.pipelineExecution.exception.APIPExpressionResolv
 import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,9 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 @Slf4j
 public class ExpressionResolverService {
 
@@ -43,7 +44,9 @@ public class ExpressionResolverService {
 
 
             context.registerFunction("jsonPath", method);
-            context.setVariable("output",pipelineExecutionOutput);
+
+            context.setVariable("output", pipelineExecutionOutput);
+
             context.addPropertyAccessor(new MapAccessor());
 
             int startIndex = 0;
@@ -68,12 +71,9 @@ public class ExpressionResolverService {
     }
 
     public HashMap<String, String> getPipelineExecutionOutput(String pipelineExeId) {
-        Optional<PipelineExecutionCollection> pipelineExecution
-                = pipelineExecutionRepository.findById(pipelineExeId);
-
-        if(pipelineExecution.isEmpty())
-            throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
-
-        return pipelineExecution.get().getOutput();
+        return pipelineExecutionRepository.findById(pipelineExeId)
+                .map(PipelineExecutionCollection::getOutput)
+                .orElseThrow(() -> new APIPPipelineExecutionNotFoundException(
+                        "Could not find pipeline execution with id " + pipelineExeId + "!"));
     }
 }

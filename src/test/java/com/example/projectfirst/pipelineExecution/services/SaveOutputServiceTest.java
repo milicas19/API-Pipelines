@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 class SaveOutputServiceTest {
 
     private SaveOutputService underTest;
-
     @Mock
     private PipelineExecutionRepository pipelineExecutionRepository;
 
@@ -55,7 +54,7 @@ class SaveOutputServiceTest {
         output.put(name, json.toString(4));
         pipelineExecutionTest.setOutput(output);
 
-        Integer numberOfExecutedSteps = pipelineExecutionTest.getNumberOfExecutedSteps();
+        int numberOfExecutedSteps = pipelineExecutionTest.getNumberOfExecutedSteps();
         numberOfExecutedSteps += 1;
         pipelineExecutionTest.setNumberOfExecutedSteps(numberOfExecutedSteps);
 

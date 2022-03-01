@@ -8,6 +8,7 @@ import com.example.projectfirst.connector.model.SpecKeyToken;
 import com.example.projectfirst.connector.model.SpecKeyUser;
 import com.example.projectfirst.connector.model.SpecUser;
 import com.example.projectfirst.pipeline.model.StepParameters;
+import com.example.projectfirst.pipelineExecution.StatusOfStepExecution;
 import com.example.projectfirst.pipelineExecution.StepExecution;
 import com.example.projectfirst.pipelineExecution.exception.APIPExpressionResolverException;
 import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFailedException;
@@ -66,7 +67,11 @@ public class StepService {
         Call call = okHttpClient.newCall(request);
         try {
             Response response = call.execute();
-            return new StepExecution(response.code(), response.message(), response.body().string());
+            if(response.isSuccessful()){
+                return new StepExecution(StatusOfStepExecution.SUCCESS, response.body().string());
+            }
+            log.error("Failed to execute pipeline! Message: " + response.message());
+            return new StepExecution(StatusOfStepExecution.FAILURE, "");
         }catch (IOException e){
             throw new APIPStepExecutionFailedException(e);
         }
@@ -91,7 +96,11 @@ public class StepService {
         Call call = okHttpClient.newCall(request);
         try {
             Response response = call.execute();
-            return new StepExecution(response.code(), response.message(), response.body().string());
+            if(response.isSuccessful()){
+                return new StepExecution(StatusOfStepExecution.SUCCESS, response.body().string());
+            }
+            log.error("Failed to execute pipeline! Message: " + response.message());
+            return new StepExecution(StatusOfStepExecution.FAILURE, "");
         }catch (IOException e){
             throw new APIPStepExecutionFailedException(e);
         }
