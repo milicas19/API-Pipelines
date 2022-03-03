@@ -4,5 +4,4 @@ jwt:
 spring:
   data:
     mongodb:
-      port: 27017
-      host: "${MONGO_HOST}"
+      uri: mongodb+srv://milicas:taskmanager@mycluster.08mau.mongodb.net/db-api-pipelines
