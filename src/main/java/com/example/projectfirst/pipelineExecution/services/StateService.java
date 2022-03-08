@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -22,17 +24,18 @@ public class StateService {
                 .orElseThrow(()-> new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!"));
     }
 
-    public PipelineExecutionCollection setState(String pipelineExeId, String state) {
+    public void setState(String pipelineExeId, String state) {
         log.info("Setting state: " + state + "!");
-        return pipelineExecutionRepository.findById(pipelineExeId)
-                .map(pipelineExecution -> {
-                    pipelineExecution.setState(state);
-                    pipelineExecutionRepository.save(pipelineExecution);
-                    return pipelineExecution;
-                })
-                .orElseThrow(()-> {
-                    log.error("Pipeline execution not found!");
-                    throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
-                });
+        Optional<PipelineExecutionCollection> pipelineExecutionOptional
+                = pipelineExecutionRepository.findById(pipelineExeId);
+
+        if(pipelineExecutionOptional.isPresent()){
+                PipelineExecutionCollection pipelineExecution = pipelineExecutionOptional.get();
+                pipelineExecution.setState(state);
+                pipelineExecutionRepository.save(pipelineExecution);
+        }else{
+            log.error("Pipeline execution not found!");
+            throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
+        }
     }
 }

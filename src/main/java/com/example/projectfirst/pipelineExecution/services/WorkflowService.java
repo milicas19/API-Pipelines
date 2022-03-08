@@ -70,7 +70,7 @@ public class WorkflowService {
         }
     }
 
-    public PipelineExecutionCollection executePipelineSteps(String pipelineExeId)
+    public void executePipelineSteps(String pipelineExeId)
             throws APIPYamlParsingException, APIPRetryMechanismException {
 
 
@@ -135,6 +135,7 @@ public class WorkflowService {
                                     stepParametersAfterExecution.getName());
                         } else {
                             if (stepOutputAfter.equals(stepOutputAtTheBeginning)) {
+                                stateService.setState(pipelineExeId, "aborted");
                                 throw new APIPPipelineExecutionFailedException("Pipeline execution failed: "
                                         + stepParameters.getName() + " failed! Unresolved expression in output!");
                             } else {
@@ -143,6 +144,7 @@ public class WorkflowService {
                             }
                         }
                     }else{
+                        stateService.setState(pipelineExeId, "aborted");
                         throw new APIPPipelineExecutionFailedException("Pipeline execution failed: "
                                 + stepParameters.getName() + " failed!");
                     }
@@ -153,15 +155,17 @@ public class WorkflowService {
                 stateService.setState(pipelineExeId, "aborted");
                 throw new APIPPipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName() + " failed!");
             } catch (APIPYamlParsingException ex){
+                stateService.setState(pipelineExeId, "aborted");
                 throw ex;
             } catch (IOException exx){
                 log.error("Failed to execute step! Retry mechanism failed! Message: " + exx.getMessage());
+                stateService.setState(pipelineExeId, "aborted");
                 throw new APIPRetryMechanismException(exx);
             }
         }
 
         log.info("Pipeline successfully executed!");
-        return stateService.setState(pipelineExeId, "finished");
+        stateService.setState(pipelineExeId, "finished");
     }
 
     public RetryTemplate prepareRetryTemplate(StepParameters stepParameters){

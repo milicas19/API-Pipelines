@@ -32,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -168,7 +167,7 @@ class WorkflowServiceTest {
                 stepsAfter.get(0), stepsAfter.get(1), stepsAfter.get(1));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
+        //given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         StepExecution firstStepExecution
                 = new StepExecution(StatusOfStepExecution.SUCCESS,
@@ -180,9 +179,8 @@ class WorkflowServiceTest {
         outputAfterFirstStep.put("step1", "step1-test-output");
         pipelineExecutionTest.setOutput(outputAfterFirstStep);
         pipelineExecutionTest.setState("finished");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("finished"))).willReturn(pipelineExecutionTest);
 
-        PipelineExecutionCollection pipelineExecution = underTest.executePipelineSteps(pipelineExecutionTestId);
+        underTest.executePipelineSteps(pipelineExecutionTestId);
 
         ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> responseArgumentCaptor = ArgumentCaptor.forClass(String.class);
@@ -201,8 +199,6 @@ class WorkflowServiceTest {
         AssertionsForClassTypes.assertThat(capturedPipelineExeIds.get(1)).isEqualTo(pipelineExecutionTestId);
         AssertionsForClassTypes.assertThat(capturedStepResponses.get(1)).isEqualTo(secondStepExecution.getOutput());
         AssertionsForClassTypes.assertThat(capturedStepNames.get(1)).isEqualTo(stepsAfter.get(1).getName());
-
-        assertThat(pipelineExecution).isEqualTo(pipelineExecutionTest);
     }
 
     @Test
@@ -251,7 +247,6 @@ class WorkflowServiceTest {
                 stepsAfter.get(1));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         StepExecution secondStepExecution
                 = new StepExecution(StatusOfStepExecution.SUCCESS, "step1-test-output");
@@ -260,9 +255,9 @@ class WorkflowServiceTest {
         outputAfterFirstStep.put("step2", "step1-test-output");
         pipelineExecutionTest.setOutput(outputAfterFirstStep);
         pipelineExecutionTest.setSteps(stepsAfter);
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("finished"))).willReturn(pipelineExecutionTest);
+        pipelineExecutionTest.setState("finished");
 
-        PipelineExecutionCollection pipelineExecution = underTest.executePipelineSteps(pipelineExecutionTestId);
+        underTest.executePipelineSteps(pipelineExecutionTestId);
 
         ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> responseArgumentCaptor = ArgumentCaptor.forClass(String.class);
@@ -277,8 +272,6 @@ class WorkflowServiceTest {
         assertThat(capturedPipelineExeId).isEqualTo(pipelineExecutionTestId);
         assertThat(capturedStepResponse).isEqualTo(secondStepExecution.getOutput());
         assertThat(capturedStepName).isEqualTo(stepsAfter.get(1).getName());
-
-        assertThat(pipelineExecution).isEqualTo(pipelineExecutionTest);
     }
 
     @Test
@@ -316,7 +309,6 @@ class WorkflowServiceTest {
                 stepsAfter.get(0));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         StepExecution stepExecution
                 = new StepExecution(StatusOfStepExecution.SUCCESS, "");
@@ -364,7 +356,6 @@ class WorkflowServiceTest {
                 stepsAfter.get(0));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         StepExecution stepExecution
                 = new StepExecution(StatusOfStepExecution.FAILURE, "");
@@ -411,13 +402,7 @@ class WorkflowServiceTest {
         given(expressionResolverService.resolveStep(any(),any(),anyBoolean())).willReturn(stepsBefore.get(0),
                 stepsAfter.get(0));
 
-        pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running")))
-                .willReturn(pipelineExecutionTest);
-
         pipelineExecutionTest.setState("aborted");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("aborted")))
-                .willReturn(pipelineExecutionTest);
         given(executionService.executeStep(any())).willThrow(APIPStepExecutionFailedException.class);
 
         assertThatThrownBy(() -> underTest.executePipelineSteps(pipelineExecutionTestId))
@@ -461,7 +446,6 @@ class WorkflowServiceTest {
                 stepsAfter.get(0));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         given(executionService.executeStep(any())).willThrow(APIPYamlParsingException.class);
 

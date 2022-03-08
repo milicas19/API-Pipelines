@@ -1,13 +1,11 @@
 package com.example.projectfirst.pipelineExecution;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.apiRequestHandler.SpecGet;
 import com.example.projectfirst.pipeline.model.StepParameters;
 import com.example.projectfirst.pipelineExecution.exception.APIPInitiateExecutionFailed;
 import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionFailedException;
 import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
 import com.example.projectfirst.pipelineExecution.exception.APIPPipelineNotPausedException;
-import com.example.projectfirst.pipelineExecution.exception.APIPRetryMechanismException;
 import com.example.projectfirst.pipelineExecution.services.WorkflowService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -110,7 +108,7 @@ class PipelineExecutionServiceTest {
     }
 
     @Test
-    void canExecutePipeline() throws APIPInitiateExecutionFailed, APIPRetryMechanismException, APIPYamlParsingException {
+    void canExecutePipeline() throws APIPInitiateExecutionFailed {
         String pipelineId = "pipeTest";
         String pipelineExecutionTestId = "pipeExeTest";
 
@@ -131,11 +129,10 @@ class PipelineExecutionServiceTest {
         output.put("step1", "some-output");
         PipelineExecutionCollection expectedPipelineExecution = new PipelineExecutionCollection(pipelineExecutionTestId,
                 pipelineId, dateTime, "finished", steps, output, 1);
-        given(workflowService.executePipelineSteps(any())).willReturn(expectedPipelineExecution);
 
-        PipelineExecutionCollection pipelineExecution = underTest.executePipeline(pipelineId);
+        String pipelineExeId = underTest.executePipeline(pipelineId);
 
-        assertThat(pipelineExecution).isEqualTo(expectedPipelineExecution);
+        assertThat(pipelineExeId).isEqualTo(pipelineExecutionTestId);
 
     }
 
@@ -151,7 +148,7 @@ class PipelineExecutionServiceTest {
     }
 
     @Test
-    void canResumeExecution() throws APIPRetryMechanismException, APIPYamlParsingException {
+    void canResumeExecution() {
         String pipelineId = "pipeTest";
         String pipelineExecutionTestId = "pipeExeTest";
 
@@ -172,11 +169,10 @@ class PipelineExecutionServiceTest {
         output.put("step1", "some-output");
         PipelineExecutionCollection expectedPipelineExecution = new PipelineExecutionCollection(pipelineExecutionTestId,
                 pipelineId, dateTime, "finished", steps, output, 1);
-        given(workflowService.executePipelineSteps(any())).willReturn(expectedPipelineExecution);
 
-        PipelineExecutionCollection pipelineExecution = underTest.resumeExecution(pipelineExecutionTestId);
+        String pipelineExeId = underTest.resumeExecution(pipelineExecutionTestId);
 
-        assertThat(pipelineExecution).isEqualTo(expectedPipelineExecution);
+        assertThat(pipelineExeId).isEqualTo(pipelineExecutionTestId);
     }
 
     @Test

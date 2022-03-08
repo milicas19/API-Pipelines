@@ -24,7 +24,6 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
     @Autowired
     private WorkflowService workflowService;
 
-
     public List<PipelineExecutionCollection> fetchAllExecutions() {
         log.info("Fetching all pipeline executions!");
         return pipelineExecutionRepository.findAll();
@@ -50,13 +49,26 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
         return pipelineExecutionList;
     }
 
-    public PipelineExecutionCollection executePipeline(String id)
-            throws APIPYamlParsingException, APIPRetryMechanismException {
-
+    public String executePipeline(String id) {
         log.info("Execution of pipeline with id " + id + " begins!");
         try {
             String pipelineExeId = workflowService.initiateExecution(id);
-            return workflowService.executePipelineSteps(pipelineExeId);
+
+            Runnable task = () -> {
+                try {
+                    workflowService.executePipelineSteps(pipelineExeId);
+                } catch (APIPYamlParsingException e) {
+                    throw new APIPPipelineExecutionFailedException("Pipeline execution failed! " +
+                            "Something wrong with the yml file of pipeline!");
+                } catch (APIPRetryMechanismException e) {
+                    throw new APIPPipelineExecutionFailedException("Pipeline execution failed! " +
+                            "Retry mechanism failed!");
+                }
+            };
+
+            new Thread(task).start();
+
+            return pipelineExeId;
         } catch (APIPInitiateExecutionFailed e) {
             log.error("Initiation of pipeline execution failed! Message: " + e.getMessage());
             throw new APIPPipelineExecutionFailedException("Pipeline execution initiation failed! " +
@@ -64,23 +76,34 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
         }
     }
 
-    public PipelineExecutionCollection resumeExecution(String id)
-            throws APIPYamlParsingException, APIPRetryMechanismException {
-
-        log.info("Resuming pipeline execution with id " + id + "!");
+    public String resumeExecution(String pipelineExeId) {
+        log.info("Resuming pipeline execution with id " + pipelineExeId + "!");
         Optional<PipelineExecutionCollection> pipelineExecution
-                = pipelineExecutionRepository.findById(id);
+                = pipelineExecutionRepository.findById(pipelineExeId);
 
         if(pipelineExecution.isEmpty()) {
             log.error("Pipeline execution not found!");
-            throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + id + "!");
+            throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
         }
         if(!pipelineExecution.get().getState().equals("paused")) {
             log.error("Pipeline execution not paused!");
-            throw new APIPPipelineNotPausedException("Pipeline execution with id " + id + " is not paused!");
+            throw new APIPPipelineNotPausedException("Pipeline execution with id " + pipelineExeId + " is not paused!");
         }
 
-        return workflowService.executePipelineSteps(id);
+        Runnable task = () -> {
+            try {
+                workflowService.executePipelineSteps(pipelineExeId);
+            } catch (APIPYamlParsingException e) {
+                throw new APIPPipelineExecutionFailedException("Pipeline execution failed! " +
+                        "Something wrong with the yml file of pipeline!");
+            } catch (APIPRetryMechanismException e) {
+                throw new APIPPipelineExecutionFailedException("Pipeline execution failed! " +
+                        "Retry mechanism failed!");
+            }
+        };
+        new Thread(task).start();
+
+        return pipelineExeId;
     }
 
     public void deleteExecution(String id) {

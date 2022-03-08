@@ -2,6 +2,8 @@ package com.example.projectfirst.connector;
 
 import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,12 +30,12 @@ public class ConnectorController {
     }
 
     @PostMapping("/connectors")
-    public ConnectorCollection postConnector(@RequestBody String yaml) throws APIPYamlParsingException {
-        return connectorService.saveConnector(yaml);
+    public ResponseEntity<ConnectorCollection> saveConnector(@RequestBody String yaml) throws APIPYamlParsingException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(connectorService.saveConnector(yaml));
     }
 
     @PutMapping("/connectors/{id}")
-    public ConnectorCollection putConnector(@RequestBody String yaml, @PathVariable(value="id") String id){
+    public ConnectorCollection updateConnector(@RequestBody String yaml, @PathVariable(value="id") String id){
         return connectorService.updateConnector(yaml,id);
     }
 

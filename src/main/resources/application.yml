@@ -4,4 +4,4 @@ jwt:
 spring:
   data:
     mongodb:
-      uri: mongodb+srv://milicas:taskmanager@mycluster.08mau.mongodb.net/db-api-pipelines
+      uri: "${MONGODB_URI}"

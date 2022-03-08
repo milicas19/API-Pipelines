@@ -62,7 +62,7 @@ class StateServiceTest {
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 
-        PipelineExecutionCollection setStateForPipelineExecution = underTest.setState(pipelineExecutionTest.getId(),state);
+        underTest.setState(pipelineExecutionTest.getId(),state);
 
         ArgumentCaptor<PipelineExecutionCollection> pipelineExecutionArgumentCaptor
                 = ArgumentCaptor.forClass(PipelineExecutionCollection.class);
