@@ -1,7 +1,7 @@
 package com.example.projectfirst.pipelineExecution.services;
 
 import com.example.projectfirst.pipelineExecution.ResolvedExpression;
-import com.example.projectfirst.pipelineExecution.exception.APIPExpressionResolverException;
+import com.example.projectfirst.exceptions.APIPExpressionResolverException;
 import com.google.gson.Gson;
 import com.jayway.jsonpath.internal.ParseContextImpl;
 import lombok.extern.slf4j.Slf4j;

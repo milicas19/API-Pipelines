@@ -1,8 +1,8 @@
 package com.example.projectfirst.pipeline;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
-import com.example.projectfirst.pipeline.exception.APIPPipelineAlreadyExistsException;
-import com.example.projectfirst.pipeline.exception.APIPPipelineNotFoundException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPPipelineAlreadyExistsException;
+import com.example.projectfirst.exceptions.APIPPipelineNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

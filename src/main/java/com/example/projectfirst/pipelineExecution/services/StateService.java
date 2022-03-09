@@ -2,7 +2,7 @@ package com.example.projectfirst.pipelineExecution.services;
 
 import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

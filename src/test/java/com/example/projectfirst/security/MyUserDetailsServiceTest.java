@@ -1,6 +1,6 @@
 package com.example.projectfirst.security;
 
-import com.example.projectfirst.security.exceptions.APIPUserNotFound;
+import com.example.projectfirst.exceptions.APIPUserNotFound;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

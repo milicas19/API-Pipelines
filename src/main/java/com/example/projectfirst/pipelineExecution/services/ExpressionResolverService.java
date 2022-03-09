@@ -1,12 +1,12 @@
 package com.example.projectfirst.pipelineExecution.services;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.model.StepParameters;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
 import com.example.projectfirst.pipelineExecution.ResolvedExpression;
-import com.example.projectfirst.pipelineExecution.exception.APIPExpressionResolverException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPExpressionResolverException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.AllArgsConstructor;
@@ -30,7 +30,8 @@ public class ExpressionResolverService {
     private PipelineExecutionRepository pipelineExecutionRepository;
 
     public StepParameters resolveStep(Map<String, String> pipelineExecutionOutput,
-                                      StepParameters stepParameters, boolean beforeExecution) throws APIPYamlParsingException {
+                                      StepParameters stepParameters, boolean beforeExecution)
+            throws APIPYamlParsingException {
 
         log.info("Resolving expressions for " + stepParameters.getName()+ "!");
 
@@ -65,7 +66,6 @@ public class ExpressionResolverService {
             log.info(yaml);
             return mapper.readValue(yaml, StepParameters.class);
         }catch (IOException e) {
-            log.error("Error while parsing step parameters to/from yaml input! Message: " + e.getMessage());
             throw new APIPYamlParsingException("Error while parsing step parameters to/from yaml input!");
         }
     }

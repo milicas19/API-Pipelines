@@ -1,8 +1,8 @@
 package com.example.projectfirst.connector;
 
-import com.example.projectfirst.connector.exception.APIPConnectorAlreadyExistsException;
-import com.example.projectfirst.connector.exception.APIPConnectorNotFoundException;
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPConnectorAlreadyExistsException;
+import com.example.projectfirst.exceptions.APIPConnectorNotFoundException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

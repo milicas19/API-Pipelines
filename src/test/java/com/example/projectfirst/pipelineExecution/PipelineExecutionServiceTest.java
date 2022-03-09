@@ -2,10 +2,10 @@ package com.example.projectfirst.pipelineExecution;
 
 import com.example.projectfirst.pipeline.apiRequestHandler.SpecGet;
 import com.example.projectfirst.pipeline.model.StepParameters;
-import com.example.projectfirst.pipelineExecution.exception.APIPInitiateExecutionFailed;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionFailedException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineNotPausedException;
+import com.example.projectfirst.exceptions.APIPInitiateExecutionFailed;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPPipelineNotPausedException;
 import com.example.projectfirst.pipelineExecution.services.WorkflowService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

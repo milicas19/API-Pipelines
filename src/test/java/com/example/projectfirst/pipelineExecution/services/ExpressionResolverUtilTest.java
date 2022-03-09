@@ -1,7 +1,7 @@
 package com.example.projectfirst.pipelineExecution.services;
 
 import com.example.projectfirst.pipelineExecution.ResolvedExpression;
-import com.example.projectfirst.pipelineExecution.exception.APIPExpressionResolverException;
+import com.example.projectfirst.exceptions.APIPExpressionResolverException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.expression.MapAccessor;
@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 class ExpressionResolverUtilTest {
 
     @Test

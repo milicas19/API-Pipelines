@@ -1,7 +1,7 @@
 package com.example.projectfirst.security;
 
-import com.example.projectfirst.security.exceptions.APIPBadCredentialsException;
-import com.example.projectfirst.security.exceptions.APIPUserAlreadyExists;
+import com.example.projectfirst.exceptions.APIPBadCredentialsException;
+import com.example.projectfirst.exceptions.APIPUserAlreadyExists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

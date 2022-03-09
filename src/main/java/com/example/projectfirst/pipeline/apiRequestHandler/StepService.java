@@ -1,7 +1,7 @@
 package com.example.projectfirst.pipeline.apiRequestHandler;
 
 import com.example.projectfirst.connector.ConnectorService;
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import com.example.projectfirst.connector.model.Connector;
 import com.example.projectfirst.connector.model.SpecKey;
 import com.example.projectfirst.connector.model.SpecKeyToken;
@@ -10,8 +10,8 @@ import com.example.projectfirst.connector.model.SpecUser;
 import com.example.projectfirst.pipeline.model.StepParameters;
 import com.example.projectfirst.pipelineExecution.StatusOfStepExecution;
 import com.example.projectfirst.pipelineExecution.StepExecution;
-import com.example.projectfirst.pipelineExecution.exception.APIPExpressionResolverException;
-import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPExpressionResolverException;
+import com.example.projectfirst.exceptions.APIPStepExecutionFailedException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -70,7 +70,6 @@ public class StepService {
             if(response.isSuccessful()){
                 return new StepExecution(StatusOfStepExecution.SUCCESS, response.body().string());
             }
-            log.error("Failed to execute pipeline! Message: " + response.message());
             return new StepExecution(StatusOfStepExecution.FAILURE, "");
         }catch (IOException e){
             throw new APIPStepExecutionFailedException(e);
@@ -99,7 +98,6 @@ public class StepService {
             if(response.isSuccessful()){
                 return new StepExecution(StatusOfStepExecution.SUCCESS, response.body().string());
             }
-            log.error("Failed to execute pipeline! Message: " + response.message());
             return new StepExecution(StatusOfStepExecution.FAILURE, "");
         }catch (IOException e){
             throw new APIPStepExecutionFailedException(e);
@@ -144,5 +142,4 @@ public class StepService {
                         .addHeader("Authorization", "Bearer " + ((SpecKeyToken)connector.getSpec()).getToken());
         }
     }
-
 }

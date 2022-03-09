@@ -1,6 +1,6 @@
 package com.example.projectfirst.pipelineExecution.services;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.PipelineCollection;
 import com.example.projectfirst.pipeline.PipelineService;
 import com.example.projectfirst.pipeline.apiRequestHandler.SpecGet;
@@ -10,11 +10,11 @@ import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
 import com.example.projectfirst.pipelineExecution.StatusOfStepExecution;
 import com.example.projectfirst.pipelineExecution.StepExecution;
-import com.example.projectfirst.pipelineExecution.exception.APIPInitiateExecutionFailed;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionFailedException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
-import com.example.projectfirst.pipelineExecution.exception.APIPRetryMechanismException;
-import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPInitiateExecutionFailed;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPRetryMechanismException;
+import com.example.projectfirst.exceptions.APIPStepExecutionFailedException;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -121,7 +121,7 @@ class WorkflowServiceTest {
     }
 
     @Test
-    void canExecutePipelineSteps() throws APIPYamlParsingException, APIPStepExecutionFailedException, APIPRetryMechanismException {
+    void canExecutePipelineSteps() throws APIPYamlParsingException, APIPStepExecutionFailedException {
         String pipelineId = "pipeTest";
         String pipelineExecutionTestId = "pipeExeTest";
 
@@ -167,7 +167,6 @@ class WorkflowServiceTest {
                 stepsAfter.get(0), stepsAfter.get(1), stepsAfter.get(1));
 
         pipelineExecutionTest.setState("running");
-        //given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         StepExecution firstStepExecution
                 = new StepExecution(StatusOfStepExecution.SUCCESS,
@@ -202,7 +201,7 @@ class WorkflowServiceTest {
     }
 
     @Test
-    void canExecutePipelineStepsOfPausedPipelineExecution() throws APIPYamlParsingException, APIPStepExecutionFailedException, APIPRetryMechanismException {
+    void canExecutePipelineStepsOfPausedPipelineExecution() throws APIPYamlParsingException, APIPStepExecutionFailedException {
         String pipelineId = "pipeTest";
         String pipelineExecutionTestId = "pipeExeTest";
 
@@ -411,7 +410,7 @@ class WorkflowServiceTest {
     }
 
     @Test
-    void willThrowWhenYamlOfConnectorIsNotCorrect() throws APIPYamlParsingException, APIPStepExecutionFailedException {
+    void willThrowWhenYamlOfConnectorIsNotCorrect() throws APIPStepExecutionFailedException, APIPYamlParsingException {
         String pipelineId = "pipeTest";
         String pipelineExecutionTestId = "pipeExeTest";
 
@@ -450,7 +449,8 @@ class WorkflowServiceTest {
         given(executionService.executeStep(any())).willThrow(APIPYamlParsingException.class);
 
         assertThatThrownBy(() -> underTest.executePipelineSteps(pipelineExecutionTestId))
-                .isInstanceOf(APIPYamlParsingException.class);
+                .isInstanceOf(APIPPipelineExecutionFailedException.class)
+                .hasMessageContaining("Pipeline execution failed!");
     }
 
     @Test

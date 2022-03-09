@@ -1,6 +1,4 @@
-package com.example.projectfirst.pipelineExecution.exception;
-
-import com.example.projectfirst.connector.exception.APIPGeneralException;
+package com.example.projectfirst.exceptions;
 
 public class APIPPipelineExecutionNotFoundException extends APIPGeneralException {
     public APIPPipelineExecutionNotFoundException(String msg){

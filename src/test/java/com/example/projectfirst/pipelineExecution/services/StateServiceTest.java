@@ -2,7 +2,7 @@ package com.example.projectfirst.pipelineExecution.services;
 
 import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

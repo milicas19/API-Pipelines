@@ -1,11 +1,9 @@
 package com.example.projectfirst.pipelineExecution;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
-import com.example.projectfirst.pipelineExecution.exception.APIPInitiateExecutionFailed;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionFailedException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineNotPausedException;
-import com.example.projectfirst.pipelineExecution.exception.APIPRetryMechanismException;
+import com.example.projectfirst.exceptions.APIPInitiateExecutionFailed;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPPipelineNotPausedException;
 import com.example.projectfirst.pipelineExecution.services.WorkflowService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,24 +53,14 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
             String pipelineExeId = workflowService.initiateExecution(id);
 
             Runnable task = () -> {
-                try {
-                    workflowService.executePipelineSteps(pipelineExeId);
-                } catch (APIPYamlParsingException e) {
-                    throw new APIPPipelineExecutionFailedException("Pipeline execution failed! " +
-                            "Something wrong with the yml file of pipeline!");
-                } catch (APIPRetryMechanismException e) {
-                    throw new APIPPipelineExecutionFailedException("Pipeline execution failed! " +
-                            "Retry mechanism failed!");
-                }
+                workflowService.executePipelineSteps(pipelineExeId);
             };
-
             new Thread(task).start();
 
             return pipelineExeId;
         } catch (APIPInitiateExecutionFailed e) {
-            log.error("Initiation of pipeline execution failed! Message: " + e.getMessage());
             throw new APIPPipelineExecutionFailedException("Pipeline execution initiation failed! " +
-                    "Something wrong with the yml file of pipeline!");
+                    "Something wrong with the yml file of pipeline! Message: " + e.getMessage());
         }
     }
 
@@ -82,24 +70,14 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
                 = pipelineExecutionRepository.findById(pipelineExeId);
 
         if(pipelineExecution.isEmpty()) {
-            log.error("Pipeline execution not found!");
             throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
         }
         if(!pipelineExecution.get().getState().equals("paused")) {
-            log.error("Pipeline execution not paused!");
             throw new APIPPipelineNotPausedException("Pipeline execution with id " + pipelineExeId + " is not paused!");
         }
 
         Runnable task = () -> {
-            try {
-                workflowService.executePipelineSteps(pipelineExeId);
-            } catch (APIPYamlParsingException e) {
-                throw new APIPPipelineExecutionFailedException("Pipeline execution failed! " +
-                        "Something wrong with the yml file of pipeline!");
-            } catch (APIPRetryMechanismException e) {
-                throw new APIPPipelineExecutionFailedException("Pipeline execution failed! " +
-                        "Retry mechanism failed!");
-            }
+            workflowService.executePipelineSteps(pipelineExeId);
         };
         new Thread(task).start();
 
