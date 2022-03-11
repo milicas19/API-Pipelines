@@ -31,7 +31,7 @@ public class ExpressionResolverService {
 
     public StepParameters resolveStep(Map<String, String> pipelineExecutionOutput,
                                       StepParameters stepParameters, boolean beforeExecution)
-            throws APIPYamlParsingException {
+            throws APIPYamlParsingException, APIPExpressionResolverException{
 
         log.info("Resolving expressions for " + stepParameters.getName()+ "!");
 

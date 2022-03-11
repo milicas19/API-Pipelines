@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service
@@ -24,17 +23,17 @@ public class StateService {
                 .orElseThrow(()-> new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!"));
     }
 
-    public void setState(String pipelineExeId, String state) {
+    public void setStateAndDescription(String pipelineExeId, String state, String description) {
         log.info("Setting state: " + state + "!");
         Optional<PipelineExecutionCollection> pipelineExecutionOptional
                 = pipelineExecutionRepository.findById(pipelineExeId);
 
         if(pipelineExecutionOptional.isPresent()){
-                PipelineExecutionCollection pipelineExecution = pipelineExecutionOptional.get();
-                pipelineExecution.setState(state);
-                pipelineExecutionRepository.save(pipelineExecution);
+            PipelineExecutionCollection pipelineExecution = pipelineExecutionOptional.get();
+            pipelineExecution.setState(state);
+            pipelineExecution.setDescription(description);
+            pipelineExecutionRepository.save(pipelineExecution);
         }else{
-            log.error("Pipeline execution not found!");
             throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
         }
     }

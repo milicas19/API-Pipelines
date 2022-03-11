@@ -34,7 +34,7 @@ class StateServiceTest {
     @Test
     void canCheckState() {
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection("pipeTest",
-                LocalDateTime.now(), "prepared", new ArrayList<>(), new HashMap<>(), 0);
+                LocalDateTime.now(), "prepared","Execution of pipeline is prepared!", new ArrayList<>(), new HashMap<>(), 0);
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 
@@ -57,12 +57,13 @@ class StateServiceTest {
     @Test
     void canSetState() {
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection("pipeTest",
-                LocalDateTime.now(), "prepared", new ArrayList<>(), new HashMap<>(), 0);
+                LocalDateTime.now(), "prepared", "Execution of pipeline is prepared!",new ArrayList<>(),
+                new HashMap<>(), 0);
         String state = "running";
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 
-        underTest.setState(pipelineExecutionTest.getId(),state);
+        underTest.setStateAndDescription(pipelineExecutionTest.getId(),state, "some description");
 
         ArgumentCaptor<PipelineExecutionCollection> pipelineExecutionArgumentCaptor
                 = ArgumentCaptor.forClass(PipelineExecutionCollection.class);
@@ -72,6 +73,7 @@ class StateServiceTest {
         PipelineExecutionCollection capturedPipelineExecution = pipelineExecutionArgumentCaptor.getValue();
 
         pipelineExecutionTest.setState(state);
+        pipelineExecutionTest.setDescription("some description");
 
         assertThat(capturedPipelineExecution).isEqualTo(pipelineExecutionTest);
     }
@@ -83,7 +85,7 @@ class StateServiceTest {
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> underTest.setState(id, state))
+        assertThatThrownBy(() -> underTest.setStateAndDescription(id, state, "some-desc"))
                 .isInstanceOf(APIPPipelineExecutionNotFoundException.class)
                 .hasMessageContaining("Could not find pipeline execution with id " + id + "!");
     }

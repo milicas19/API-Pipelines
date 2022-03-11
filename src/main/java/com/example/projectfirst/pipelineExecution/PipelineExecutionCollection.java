@@ -18,6 +18,7 @@ public class PipelineExecutionCollection {
     private String pipelineId;
     private LocalDateTime startDate;
     private String state;
+    private String description;
     private List<StepParameters> steps;
     private HashMap<String, String> output;
     private Integer numberOfExecutedSteps;
@@ -25,6 +26,7 @@ public class PipelineExecutionCollection {
     public PipelineExecutionCollection(String pipelineId,
                                        LocalDateTime startDate,
                                        String state,
+                                       String description,
                                        List<StepParameters> steps,
                                        HashMap<String, String> output,
                                        Integer numberOfExecutedSteps) {
@@ -33,6 +35,7 @@ public class PipelineExecutionCollection {
         this.state = state;
         this.steps = steps;
         this.output = output;
+        this.description = description;
         this.numberOfExecutedSteps = numberOfExecutedSteps;
     }
 }

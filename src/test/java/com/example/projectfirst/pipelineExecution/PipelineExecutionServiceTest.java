@@ -47,7 +47,7 @@ class PipelineExecutionServiceTest {
     @Test
     void canFetchExecution() {
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection("pipeTest",
-                LocalDateTime.now(), "prepared", new ArrayList<>(), new HashMap<>(), 0);
+                LocalDateTime.now(), "prepared", "Execution of pipeline is prepared!", new ArrayList<>(), new HashMap<>(), 0);
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 
@@ -72,9 +72,9 @@ class PipelineExecutionServiceTest {
     @Test
     void canFetchPausedExecutions() {
         PipelineExecutionCollection pausedPipelineExecutionTest = new PipelineExecutionCollection("pipeTest",
-                LocalDateTime.now(), "paused", new ArrayList<>(), new HashMap<>(), 0);
+                LocalDateTime.now(), "paused", "Execution of pipeline is prepared!", new ArrayList<>(), new HashMap<>(), 0);
         PipelineExecutionCollection notPausedPipelineExecutionTest = new PipelineExecutionCollection("pipeTest",
-                LocalDateTime.now(), "finished", new ArrayList<>(), new HashMap<>(), 0);
+                LocalDateTime.now(), "finished", "Pipeline successfully executed!", new ArrayList<>(), new HashMap<>(), 0);
         List<PipelineExecutionCollection> allPipelineExecutionTest = new ArrayList<>();
         allPipelineExecutionTest.add(pausedPipelineExecutionTest);
         allPipelineExecutionTest.add(notPausedPipelineExecutionTest);
@@ -123,12 +123,12 @@ class PipelineExecutionServiceTest {
         LocalDateTime dateTime = LocalDateTime.now();
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineId, dateTime,
-                "prepared", steps, output, 0);
+                "prepared", "Execution of pipeline is prepared!", steps, output, 0);
         given(workflowService.initiateExecution(any())).willReturn(pipelineExecutionTestId);
 
         output.put("step1", "some-output");
         PipelineExecutionCollection expectedPipelineExecution = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime, "finished", steps, output, 1);
+                pipelineId, dateTime, "finished", "Pipeline successfully executed!", steps, output, 1);
 
         String pipelineExeId = underTest.executePipeline(pipelineId);
 
@@ -163,12 +163,12 @@ class PipelineExecutionServiceTest {
         LocalDateTime dateTime = LocalDateTime.now();
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime, "paused", steps, output, 0);
+                pipelineId, dateTime, "paused", "Execution of pipeline is paused!", steps, output, 0);
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 
         output.put("step1", "some-output");
         PipelineExecutionCollection expectedPipelineExecution = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime, "finished", steps, output, 1);
+                pipelineId, dateTime, "finished", "Pipeline successfully executed!", steps, output, 1);
 
         String pipelineExeId = underTest.resumeExecution(pipelineExecutionTestId);
 
@@ -192,7 +192,7 @@ class PipelineExecutionServiceTest {
         String pipelineExecutionTestId = "pipeExeTest";
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, LocalDateTime.now(), "aborted", new ArrayList<>(), new HashMap<>(), 0);
+                pipelineId, LocalDateTime.now(), "aborted", "Execution of pipeline is aborted!", new ArrayList<>(), new HashMap<>(), 0);
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 
         assertThatThrownBy(() -> underTest.resumeExecution(pipelineExecutionTestId))

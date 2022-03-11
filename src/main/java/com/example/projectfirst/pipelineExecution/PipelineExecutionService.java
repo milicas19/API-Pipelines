@@ -32,7 +32,8 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
         return pipelineExecutionRepository.findById(id).
                 orElseThrow(() -> {
                     log.error("Pipeline execution not found!");
-                    throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + id + "!");
+                    throw new APIPPipelineExecutionNotFoundException(
+                            "Could not find pipeline execution with id " + id + "!");
                 });
     }
 
@@ -70,10 +71,12 @@ public class PipelineExecutionService implements PipelineExecutionInterface{
                 = pipelineExecutionRepository.findById(pipelineExeId);
 
         if(pipelineExecution.isEmpty()) {
-            throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
+            throw new APIPPipelineExecutionNotFoundException(
+                    "Could not find pipeline execution with id " + pipelineExeId + "!");
         }
         if(!pipelineExecution.get().getState().equals("paused")) {
-            throw new APIPPipelineNotPausedException("Pipeline execution with id " + pipelineExeId + " is not paused!");
+            throw new APIPPipelineNotPausedException(
+                    "Pipeline execution with id " + pipelineExeId + " is not paused!");
         }
 
         Runnable task = () -> {

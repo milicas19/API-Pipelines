@@ -1,6 +1,7 @@
 package com.example.projectfirst.pipeline.apiRequestHandler;
 
 import com.example.projectfirst.connector.ConnectorService;
+import com.example.projectfirst.exceptions.APIPConnectorNotFoundException;
 import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import com.example.projectfirst.connector.model.Connector;
 import com.example.projectfirst.connector.model.SpecKey;
@@ -38,7 +39,7 @@ public class StepService {
     private OkHttpClient okHttpClient;
 
     public StepExecution executePostRequest(StepParameters stepParameters)
-            throws APIPYamlParsingException, APIPStepExecutionFailedException {
+            throws APIPYamlParsingException, APIPStepExecutionFailedException, APIPConnectorNotFoundException {
 
         log.info("Execution of post request!");
 
@@ -77,7 +78,7 @@ public class StepService {
     }
 
     public StepExecution executeGetRequest(StepParameters stepParameters)
-            throws APIPYamlParsingException, APIPStepExecutionFailedException{
+            throws APIPYamlParsingException, APIPStepExecutionFailedException, APIPConnectorNotFoundException{
 
         log.info("Execution of get request!");
 
@@ -104,7 +105,7 @@ public class StepService {
         }
     }
 
-    public Connector getConnectorFromYml(String id) throws APIPYamlParsingException{
+    public Connector getConnectorFromYml(String id) throws APIPYamlParsingException, APIPConnectorNotFoundException {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
         String connectorYml = connectorService.fetchConnector(id).getYmlFile();
         try {

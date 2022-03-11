@@ -1,5 +1,6 @@
 package com.example.projectfirst.pipelineExecution.services;
 
+import com.example.projectfirst.exceptions.APIPConnectorNotFoundException;
 import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.apiRequestHandler.StepHandler;
 import com.example.projectfirst.pipeline.model.StepParameters;
@@ -64,7 +65,7 @@ public class ExecutionService {
     }
 
     public StepExecution executeStep(StepParameters stepParameters)
-            throws APIPYamlParsingException, APIPStepExecutionFailedException {
+            throws APIPYamlParsingException, APIPStepExecutionFailedException, APIPConnectorNotFoundException {
 
         try {
             log.info("Executing " + stepParameters.getName() + "!");

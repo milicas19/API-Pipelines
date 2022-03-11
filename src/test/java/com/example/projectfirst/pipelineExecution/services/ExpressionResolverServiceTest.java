@@ -80,7 +80,7 @@ class ExpressionResolverServiceTest {
     @Test
     void canGetPipelineExecutionOutput() {
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection("pipeTest",
-                LocalDateTime.now(), "prepared", new ArrayList<>(), new HashMap<>(), 0);
+                LocalDateTime.now(), "prepared", "Execution of pipeline is prepared!", new ArrayList<>(), new HashMap<>(), 0);
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 
