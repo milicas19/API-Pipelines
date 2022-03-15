@@ -1,13 +1,11 @@
 package com.example.projectfirst.pipelineExecution;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.apiRequestHandler.SpecGet;
 import com.example.projectfirst.pipeline.model.StepParameters;
-import com.example.projectfirst.pipelineExecution.exception.APIPInitiateExecutionFailed;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionFailedException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineNotPausedException;
-import com.example.projectfirst.pipelineExecution.exception.APIPRetryMechanismException;
+import com.example.projectfirst.exceptions.APIPInitiateExecutionFailed;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPPipelineNotPausedException;
 import com.example.projectfirst.pipelineExecution.services.WorkflowService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +47,7 @@ class PipelineExecutionServiceTest {
     @Test
     void canFetchExecution() {
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection("pipeTest",
-                LocalDateTime.now(), "prepared", new ArrayList<>(), new HashMap<>(), 0);
+                LocalDateTime.now(), "prepared", "Execution of pipeline is prepared!", new ArrayList<>(), new HashMap<>(), 0);
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 
@@ -74,9 +72,9 @@ class PipelineExecutionServiceTest {
     @Test
     void canFetchPausedExecutions() {
         PipelineExecutionCollection pausedPipelineExecutionTest = new PipelineExecutionCollection("pipeTest",
-                LocalDateTime.now(), "paused", new ArrayList<>(), new HashMap<>(), 0);
+                LocalDateTime.now(), "paused", "Execution of pipeline is prepared!", new ArrayList<>(), new HashMap<>(), 0);
         PipelineExecutionCollection notPausedPipelineExecutionTest = new PipelineExecutionCollection("pipeTest",
-                LocalDateTime.now(), "finished", new ArrayList<>(), new HashMap<>(), 0);
+                LocalDateTime.now(), "finished", "Pipeline successfully executed!", new ArrayList<>(), new HashMap<>(), 0);
         List<PipelineExecutionCollection> allPipelineExecutionTest = new ArrayList<>();
         allPipelineExecutionTest.add(pausedPipelineExecutionTest);
         allPipelineExecutionTest.add(notPausedPipelineExecutionTest);
@@ -110,7 +108,7 @@ class PipelineExecutionServiceTest {
     }
 
     @Test
-    void canExecutePipeline() throws APIPInitiateExecutionFailed, APIPRetryMechanismException, APIPYamlParsingException {
+    void canExecutePipeline() throws APIPInitiateExecutionFailed {
         String pipelineId = "pipeTest";
         String pipelineExecutionTestId = "pipeExeTest";
 
@@ -125,17 +123,16 @@ class PipelineExecutionServiceTest {
         LocalDateTime dateTime = LocalDateTime.now();
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineId, dateTime,
-                "prepared", steps, output, 0);
+                "prepared", "Execution of pipeline is prepared!", steps, output, 0);
         given(workflowService.initiateExecution(any())).willReturn(pipelineExecutionTestId);
 
         output.put("step1", "some-output");
         PipelineExecutionCollection expectedPipelineExecution = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime, "finished", steps, output, 1);
-        given(workflowService.executePipelineSteps(any())).willReturn(expectedPipelineExecution);
+                pipelineId, dateTime, "finished", "Pipeline successfully executed!", steps, output, 1);
 
-        PipelineExecutionCollection pipelineExecution = underTest.executePipeline(pipelineId);
+        String pipelineExeId = underTest.executePipeline(pipelineId);
 
-        assertThat(pipelineExecution).isEqualTo(expectedPipelineExecution);
+        assertThat(pipelineExeId).isEqualTo(pipelineExecutionTestId);
 
     }
 
@@ -151,7 +148,7 @@ class PipelineExecutionServiceTest {
     }
 
     @Test
-    void canResumeExecution() throws APIPRetryMechanismException, APIPYamlParsingException {
+    void canResumeExecution() {
         String pipelineId = "pipeTest";
         String pipelineExecutionTestId = "pipeExeTest";
 
@@ -166,17 +163,16 @@ class PipelineExecutionServiceTest {
         LocalDateTime dateTime = LocalDateTime.now();
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime, "paused", steps, output, 0);
+                pipelineId, dateTime, "paused", "Execution of pipeline is paused!", steps, output, 0);
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 
         output.put("step1", "some-output");
         PipelineExecutionCollection expectedPipelineExecution = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime, "finished", steps, output, 1);
-        given(workflowService.executePipelineSteps(any())).willReturn(expectedPipelineExecution);
+                pipelineId, dateTime, "finished", "Pipeline successfully executed!", steps, output, 1);
 
-        PipelineExecutionCollection pipelineExecution = underTest.resumeExecution(pipelineExecutionTestId);
+        String pipelineExeId = underTest.resumeExecution(pipelineExecutionTestId);
 
-        assertThat(pipelineExecution).isEqualTo(expectedPipelineExecution);
+        assertThat(pipelineExeId).isEqualTo(pipelineExecutionTestId);
     }
 
     @Test
@@ -196,7 +192,7 @@ class PipelineExecutionServiceTest {
         String pipelineExecutionTestId = "pipeExeTest";
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, LocalDateTime.now(), "aborted", new ArrayList<>(), new HashMap<>(), 0);
+                pipelineId, LocalDateTime.now(), "aborted", "Execution of pipeline is aborted!", new ArrayList<>(), new HashMap<>(), 0);
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 
         assertThatThrownBy(() -> underTest.resumeExecution(pipelineExecutionTestId))

@@ -1,2 +1,7 @@
 jwt:
   secret: somesecretkey#199
+
+spring:
+  data:
+    mongodb:
+      uri: "${MONGODB_URI}"

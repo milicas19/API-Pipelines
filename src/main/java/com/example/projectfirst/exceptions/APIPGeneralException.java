@@ -1,4 +1,4 @@
-package com.example.projectfirst.connector.exception;
+package com.example.projectfirst.exceptions;
 
 public class APIPGeneralException extends RuntimeException{
     public APIPGeneralException(String msg) {

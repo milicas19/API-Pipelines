@@ -1,6 +1,6 @@
 package com.example.projectfirst.security;
 
-import com.example.projectfirst.security.exceptions.APIPUserNotFound;
+import com.example.projectfirst.exceptions.APIPUserNotFound;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;

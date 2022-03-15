@@ -2,13 +2,13 @@ package com.example.projectfirst.pipeline.apiRequestHandler;
 
 import com.example.projectfirst.connector.ConnectorCollection;
 import com.example.projectfirst.connector.ConnectorService;
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import com.example.projectfirst.connector.model.Connector;
 import com.example.projectfirst.pipeline.model.StepParameters;
 import com.example.projectfirst.pipelineExecution.StatusOfStepExecution;
 import com.example.projectfirst.pipelineExecution.StepExecution;
-import com.example.projectfirst.pipelineExecution.exception.APIPExpressionResolverException;
-import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPExpressionResolverException;
+import com.example.projectfirst.exceptions.APIPStepExecutionFailedException;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;

@@ -2,11 +2,12 @@ package com.example.projectfirst.pipelineExecution.services;
 
 import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -22,17 +23,18 @@ public class StateService {
                 .orElseThrow(()-> new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!"));
     }
 
-    public PipelineExecutionCollection setState(String pipelineExeId, String state) {
+    public void setStateAndDescription(String pipelineExeId, String state, String description) {
         log.info("Setting state: " + state + "!");
-        return pipelineExecutionRepository.findById(pipelineExeId)
-                .map(pipelineExecution -> {
-                    pipelineExecution.setState(state);
-                    pipelineExecutionRepository.save(pipelineExecution);
-                    return pipelineExecution;
-                })
-                .orElseThrow(()-> {
-                    log.error("Pipeline execution not found!");
-                    throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
-                });
+        Optional<PipelineExecutionCollection> pipelineExecutionOptional
+                = pipelineExecutionRepository.findById(pipelineExeId);
+
+        if(pipelineExecutionOptional.isPresent()){
+            PipelineExecutionCollection pipelineExecution = pipelineExecutionOptional.get();
+            pipelineExecution.setState(state);
+            pipelineExecution.setDescription(description);
+            pipelineExecutionRepository.save(pipelineExecution);
+        }else{
+            throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
+        }
     }
 }

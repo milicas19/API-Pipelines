@@ -1,6 +1,9 @@
 package com.example.projectfirst.pipelineExecution.services;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPConnectorNotFoundException;
+import com.example.projectfirst.exceptions.APIPExpressionResolverException;
+import com.example.projectfirst.exceptions.APIPRetryMechanismException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.PipelineService;
 import com.example.projectfirst.pipeline.model.Pipeline;
 import com.example.projectfirst.pipeline.model.StepParameters;
@@ -8,11 +11,10 @@ import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
 import com.example.projectfirst.pipelineExecution.StatusOfStepExecution;
 import com.example.projectfirst.pipelineExecution.StepExecution;
-import com.example.projectfirst.pipelineExecution.exception.APIPInitiateExecutionFailed;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionFailedException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
-import com.example.projectfirst.pipelineExecution.exception.APIPRetryMechanismException;
-import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPInitiateExecutionFailed;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPStepExecutionFailedException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -47,20 +49,18 @@ public class WorkflowService {
     @Autowired
     private SaveOutputService saveOutputService;
 
-
-    public String initiateExecution(String id) throws APIPInitiateExecutionFailed {
+    public String initiateExecution(String pipelineId) throws APIPInitiateExecutionFailed {
 
         log.info("Initiation of pipeline execution begins!");
-        String yaml = pipelineService.fetchPipeline(id).getYmlFile();
+        String yaml = pipelineService.fetchPipeline(pipelineId).getYmlFile();
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
         try {
-            Map<String, Pipeline> pipelineMap = objectMapper.readValue(yaml,
-                    new TypeReference<>() {
-                    });
+            Map<String, Pipeline> pipelineMap = objectMapper.readValue(yaml, new TypeReference<>() {});
             Pipeline pipeline = pipelineMap.get("pipeline");
-            PipelineExecutionCollection pipelineExecution = new PipelineExecutionCollection(pipeline.getId(), LocalDateTime.now(),
-                    "prepared", pipeline.getSteps(), new HashMap<>(), 0);
+            PipelineExecutionCollection pipelineExecution = new PipelineExecutionCollection(pipeline.getId(),
+                    LocalDateTime.now(),"prepared", "Execution of pipeline is prepared!",
+                    pipeline.getSteps(), new HashMap<>(), 0);
 
             PipelineExecutionCollection execution = pipelineExecutionRepository.save(pipelineExecution);
             log.info("Initiation of pipeline execution successful!");
@@ -70,23 +70,23 @@ public class WorkflowService {
         }
     }
 
-    public PipelineExecutionCollection executePipelineSteps(String pipelineExeId)
-            throws APIPYamlParsingException, APIPRetryMechanismException {
-
-
-        Optional<PipelineExecutionCollection> pipelineExecutionOp
+    public void executePipelineSteps(String pipelineExeId) {
+        Optional<PipelineExecutionCollection> pipelineExecutionOptional
                 = pipelineExecutionRepository.findById(pipelineExeId);
 
-        if(pipelineExecutionOp.isEmpty()) {
+        if(pipelineExecutionOptional.isEmpty()) {
             log.error("Pipeline execution with id " + pipelineExeId + "not found!");
-            throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id " + pipelineExeId + "!");
+            throw new APIPPipelineExecutionNotFoundException("Could not find pipeline execution with id "
+                    + pipelineExeId + "!");
         }
-        PipelineExecutionCollection pipelineExecution = pipelineExecutionOp.get();
+
+        PipelineExecutionCollection pipelineExecution = pipelineExecutionOptional.get();
 
         int numberOfExecutedSteps = pipelineExecution.getNumberOfExecutedSteps();
-        // if pipeline execution is paused and we want to resume it
+        // if pipeline execution is paused --> resume it
         if(numberOfExecutedSteps > 0){
-            stateService.setState(pipelineExeId, "running");
+            stateService.setStateAndDescription(pipelineExeId, "running",
+                    "Pipeline execution resumed!");
         }
         int stepNum = numberOfExecutedSteps + 1;
         log.info("Executing pipeline from step" + stepNum + "!");
@@ -105,63 +105,88 @@ public class WorkflowService {
                 throw new APIPPipelineExecutionFailedException("Pipeline execution " + state + "!");
             }
 
-            HashMap<String, String> pipelineExecutionOutput = expressionResolverService.getPipelineExecutionOutput(pipelineExeId);
+            stateService.setStateAndDescription(pipelineExeId, "running",
+                    "Pipeline is being executed");
+
+            try {
+            HashMap<String, String> pipelineExecutionOutput
+                    = expressionResolverService.getPipelineExecutionOutput(pipelineExeId);
+
             StepParameters stepParametersResolvedBeforeExecution
                     = expressionResolverService.resolveStep(pipelineExecutionOutput, stepParameters, true);
 
             RetryTemplate retryTemplate = prepareRetryTemplate(stepParameters);
 
-            try {
-                retryTemplate.execute(arg0 -> {
-                    stateService.setState(pipelineExeId, "running");
-
-                    StepExecution stepExecution
+            retryTemplate.execute(arg0 -> {
+                StepExecution stepExecution
                             = executionService.executeStep(stepParametersResolvedBeforeExecution);
 
-                    if(stepExecution.getStatus().equals(StatusOfStepExecution.SUCCESS)){
-                        pipelineExecutionOutput.put(stepParametersResolvedBeforeExecution.getName(), stepExecution.getOutput());
-                        StepParameters stepParametersAfterExecution
-                                = expressionResolverService.resolveStep(
-                                        pipelineExecutionOutput, stepParametersResolvedBeforeExecution,false);
-                        String stepOutputAfter = stepParametersAfterExecution.getSpec().getOutput();
-                        String stepOutputAtTheBeginning = stepParameters.getSpec().getOutput();
+                if(stepExecution.getStatus().equals(StatusOfStepExecution.SUCCESS)){
+                    pipelineExecutionOutput.put(stepParametersResolvedBeforeExecution.getName(), stepExecution.getOutput());
+                    StepParameters stepParametersAfterExecution
+                            = expressionResolverService.resolveStep(
+                                    pipelineExecutionOutput, stepParametersResolvedBeforeExecution,false);
+                    String stepOutputAfter = stepParametersAfterExecution.getSpec().getOutput();
+                    String stepOutputAtTheBeginning = stepParameters.getSpec().getOutput();
 
-                        log.info("step output at the beginning: " + stepOutputAtTheBeginning);
-                        log.info("step output after resolving: " + stepOutputAfter);
+                    log.info("step output at the beginning: " + stepOutputAtTheBeginning);
+                    log.info("step output after resolving: " + stepOutputAfter);
 
-                        if(stepOutputAfter == null) {
-                            log.info("their is no expression in output of " + stepParametersAfterExecution.getName());
-                            saveOutputService.save(pipelineExeId, stepExecution.getOutput(),
-                                    stepParametersAfterExecution.getName());
+                    if(stepOutputAfter == null) {
+                         log.info("their is no expression in output of " + stepParametersAfterExecution.getName());
+                         saveOutputService.save(pipelineExeId, stepExecution.getOutput(),
+                                 stepParametersAfterExecution.getName());
+                    } else {
+                        if (stepOutputAfter.equals(stepOutputAtTheBeginning)) {
+                            log.error("unresolved expression in output");
+                            stateService.setStateAndDescription(pipelineExeId, "failed",
+                                    "Pipeline execution failed: " + stepParameters.getName() + " failed! " +
+                                            "Unresolved expression in output!");
+                            throw new APIPPipelineExecutionFailedException("Pipeline execution failed: "
+                                    + stepParameters.getName() + " failed! Unresolved expression in output!");
                         } else {
-                            if (stepOutputAfter.equals(stepOutputAtTheBeginning)) {
-                                throw new APIPPipelineExecutionFailedException("Pipeline execution failed: "
-                                        + stepParameters.getName() + " failed! Unresolved expression in output!");
-                            } else {
-                                log.info("expression in output of " + stepParametersAfterExecution.getName());
-                                saveOutputService.save(pipelineExeId, stepOutputAfter, stepParametersAfterExecution.getName());
-                            }
+                            log.info("expression in output of " + stepParametersAfterExecution.getName());
+                            saveOutputService.save(pipelineExeId, stepOutputAfter,
+                                    stepParametersAfterExecution.getName());
                         }
-                    }else{
-                        throw new APIPPipelineExecutionFailedException("Pipeline execution failed: "
-                                + stepParameters.getName() + " failed!");
                     }
-                    return null;
-                });
+                }else{
+                    stateService.setStateAndDescription(pipelineExeId, "failed", "Pipeline execution failed: "
+                            + stepParameters.getName() + " failed!");
+                    throw new APIPPipelineExecutionFailedException("Pipeline execution failed: "
+                            + stepParameters.getName() + " failed!");
+                }
+                return null; });
             } catch (APIPStepExecutionFailedException e) {
-                log.error("Failed to execute step! Message: " + e.getMessage());
-                stateService.setState(pipelineExeId, "aborted");
-                throw new APIPPipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName() + " failed!");
-            } catch (APIPYamlParsingException ex){
-                throw ex;
-            } catch (IOException exx){
-                log.error("Failed to execute step! Retry mechanism failed! Message: " + exx.getMessage());
-                throw new APIPRetryMechanismException(exx);
+                stateService.setStateAndDescription(pipelineExeId, "failed", "Pipeline execution failed: "
+                        + stepParameters.getName() + " failed! Message: " + e.getMessage());
+                throw new APIPPipelineExecutionFailedException("Pipeline execution failed: " +
+                        stepParameters.getName() + " failed! Message: " + e.getMessage());
+            } catch (APIPYamlParsingException e){
+                stateService.setStateAndDescription(pipelineExeId, "failed", "Pipeline execution failed! "
+                        + "Message: " + e.getMessage());
+                throw new APIPPipelineExecutionFailedException("Pipeline execution failed! Message: " + e.getMessage());
+            } catch (APIPExpressionResolverException e){
+                stateService.setStateAndDescription(pipelineExeId, "failed", "Pipeline execution failed: "
+                        + stepParameters.getName() + " failed! Expression error! Message: " + e.getMessage());
+                throw new APIPPipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName()
+                        + " failed! Expression error! Message: " + e.getMessage());
+            } catch (APIPConnectorNotFoundException e){
+                stateService.setStateAndDescription(pipelineExeId, "failed", "Pipeline execution failed: "
+                        + stepParameters.getName() + " failed! Connector error! Message: " + e.getMessage());
+                throw new APIPPipelineExecutionFailedException("Pipeline execution failed: "
+                        + stepParameters.getName() + " failed! Connector error! Message: " + e.getMessage());
+            } catch (IOException e){
+                stateService.setStateAndDescription(pipelineExeId, "failed", "Pipeline execution failed: "
+                        + stepParameters.getName() + "failed! Retry mechanism failed!");
+                throw new APIPPipelineExecutionFailedException("Pipeline execution failed: " + stepParameters.getName() + "failed! Retry mechanism failed!");
+
             }
         }
 
         log.info("Pipeline successfully executed!");
-        return stateService.setState(pipelineExeId, "finished");
+        stateService.setStateAndDescription(pipelineExeId, "finished",
+                "Pipeline successfully executed!");
     }
 
     public RetryTemplate prepareRetryTemplate(StepParameters stepParameters){

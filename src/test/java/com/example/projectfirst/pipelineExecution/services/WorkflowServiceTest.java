@@ -1,6 +1,7 @@
 package com.example.projectfirst.pipelineExecution.services;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPExpressionResolverException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.PipelineCollection;
 import com.example.projectfirst.pipeline.PipelineService;
 import com.example.projectfirst.pipeline.apiRequestHandler.SpecGet;
@@ -10,11 +11,11 @@ import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
 import com.example.projectfirst.pipelineExecution.StatusOfStepExecution;
 import com.example.projectfirst.pipelineExecution.StepExecution;
-import com.example.projectfirst.pipelineExecution.exception.APIPInitiateExecutionFailed;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionFailedException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
-import com.example.projectfirst.pipelineExecution.exception.APIPRetryMechanismException;
-import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPInitiateExecutionFailed;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPRetryMechanismException;
+import com.example.projectfirst.exceptions.APIPStepExecutionFailedException;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -87,7 +87,7 @@ class WorkflowServiceTest {
                 2, 3000));
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(expectedPipelineExeId,
-                pipeId, dateTime,"prepared", steps, new HashMap<>(), 0);
+                pipeId, dateTime,"prepared", "Execution of pipeline is prepared!", steps, new HashMap<>(), 0);
 
         given(pipelineService.fetchPipeline(any())).willReturn(pipelineTest);
         given(pipelineExecutionRepository.save(any())).willReturn(pipelineExecutionTest);
@@ -122,7 +122,7 @@ class WorkflowServiceTest {
     }
 
     @Test
-    void canExecutePipelineSteps() throws APIPYamlParsingException, APIPStepExecutionFailedException, APIPRetryMechanismException {
+    void canExecutePipelineSteps() throws APIPYamlParsingException, APIPStepExecutionFailedException {
         String pipelineId = "pipeTest";
         String pipelineExecutionTestId = "pipeExeTest";
 
@@ -160,7 +160,7 @@ class WorkflowServiceTest {
         stepsAfter.add(resolvedSecondStepParameter);
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime, "prepared", stepsBefore, output, 0);
+                pipelineId, dateTime, "prepared","Execution of pipeline is prepared!", stepsBefore, output, 0);
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
         given(stateService.checkState(any())).willReturn("prepared", "running");
@@ -168,7 +168,6 @@ class WorkflowServiceTest {
                 stepsAfter.get(0), stepsAfter.get(1), stepsAfter.get(1));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         StepExecution firstStepExecution
                 = new StepExecution(StatusOfStepExecution.SUCCESS,
@@ -180,9 +179,8 @@ class WorkflowServiceTest {
         outputAfterFirstStep.put("step1", "step1-test-output");
         pipelineExecutionTest.setOutput(outputAfterFirstStep);
         pipelineExecutionTest.setState("finished");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("finished"))).willReturn(pipelineExecutionTest);
 
-        PipelineExecutionCollection pipelineExecution = underTest.executePipelineSteps(pipelineExecutionTestId);
+        underTest.executePipelineSteps(pipelineExecutionTestId);
 
         ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> responseArgumentCaptor = ArgumentCaptor.forClass(String.class);
@@ -201,12 +199,10 @@ class WorkflowServiceTest {
         AssertionsForClassTypes.assertThat(capturedPipelineExeIds.get(1)).isEqualTo(pipelineExecutionTestId);
         AssertionsForClassTypes.assertThat(capturedStepResponses.get(1)).isEqualTo(secondStepExecution.getOutput());
         AssertionsForClassTypes.assertThat(capturedStepNames.get(1)).isEqualTo(stepsAfter.get(1).getName());
-
-        assertThat(pipelineExecution).isEqualTo(pipelineExecutionTest);
     }
 
     @Test
-    void canExecutePipelineStepsOfPausedPipelineExecution() throws APIPYamlParsingException, APIPStepExecutionFailedException, APIPRetryMechanismException {
+    void canExecutePipelineStepsOfPausedPipelineExecution() throws APIPYamlParsingException, APIPStepExecutionFailedException {
         String pipelineId = "pipeTest";
         String pipelineExecutionTestId = "pipeExeTest";
 
@@ -242,7 +238,7 @@ class WorkflowServiceTest {
         stepsAfter.add(resolvedSecondStepParameter);
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime,"paused", stepsBefore, outputAfterFirstStep, 1);
+                pipelineId, dateTime,"paused", "Execution of pipeline is paused!", stepsBefore, outputAfterFirstStep, 1);
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
         given(stateService.checkState(any())).willReturn("running");
@@ -251,7 +247,6 @@ class WorkflowServiceTest {
                 stepsAfter.get(1));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         StepExecution secondStepExecution
                 = new StepExecution(StatusOfStepExecution.SUCCESS, "step1-test-output");
@@ -260,9 +255,9 @@ class WorkflowServiceTest {
         outputAfterFirstStep.put("step2", "step1-test-output");
         pipelineExecutionTest.setOutput(outputAfterFirstStep);
         pipelineExecutionTest.setSteps(stepsAfter);
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("finished"))).willReturn(pipelineExecutionTest);
+        pipelineExecutionTest.setState("finished");
 
-        PipelineExecutionCollection pipelineExecution = underTest.executePipelineSteps(pipelineExecutionTestId);
+        underTest.executePipelineSteps(pipelineExecutionTestId);
 
         ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> responseArgumentCaptor = ArgumentCaptor.forClass(String.class);
@@ -277,8 +272,6 @@ class WorkflowServiceTest {
         assertThat(capturedPipelineExeId).isEqualTo(pipelineExecutionTestId);
         assertThat(capturedStepResponse).isEqualTo(secondStepExecution.getOutput());
         assertThat(capturedStepName).isEqualTo(stepsAfter.get(1).getName());
-
-        assertThat(pipelineExecution).isEqualTo(pipelineExecutionTest);
     }
 
     @Test
@@ -308,7 +301,7 @@ class WorkflowServiceTest {
         stepsAfter.add(resolvedStepParameter);
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime, "prepared", stepsBefore, output, 0);
+                pipelineId, dateTime, "prepared", "Execution of pipeline is prepared!", stepsBefore, output, 0);
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
         given(stateService.checkState(any())).willReturn("prepared");
@@ -316,7 +309,6 @@ class WorkflowServiceTest {
                 stepsAfter.get(0));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         StepExecution stepExecution
                 = new StepExecution(StatusOfStepExecution.SUCCESS, "");
@@ -355,7 +347,7 @@ class WorkflowServiceTest {
 
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime,"prepared", stepsBefore, outputAfterFirstStep, 0);
+                pipelineId, dateTime,"prepared", "Execution of pipeline is prepared!", stepsBefore, outputAfterFirstStep, 0);
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
         given(stateService.checkState(any())).willReturn("running");
@@ -364,7 +356,6 @@ class WorkflowServiceTest {
                 stepsAfter.get(0));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         StepExecution stepExecution
                 = new StepExecution(StatusOfStepExecution.FAILURE, "");
@@ -402,7 +393,7 @@ class WorkflowServiceTest {
 
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime,"prepared", stepsBefore, outputAfterFirstStep, 0);
+                pipelineId, dateTime,"prepared", "Execution of pipeline is prepared!",  stepsBefore, outputAfterFirstStep, 0);
 
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
@@ -412,21 +403,30 @@ class WorkflowServiceTest {
                 stepsAfter.get(0));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running")))
-                .willReturn(pipelineExecutionTest);
 
-        pipelineExecutionTest.setState("aborted");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("aborted")))
-                .willReturn(pipelineExecutionTest);
         given(executionService.executeStep(any())).willThrow(APIPStepExecutionFailedException.class);
 
+        pipelineExecutionTest.setState("failed");
+
         assertThatThrownBy(() -> underTest.executePipelineSteps(pipelineExecutionTestId))
-                .isInstanceOf(APIPPipelineExecutionFailedException.class)
-                .hasMessageContaining("Pipeline execution failed: " + stepParameters.getName() + " failed!");
+                .isInstanceOf(APIPPipelineExecutionFailedException.class);
+
+        ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> stateArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> descArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(stateService, times(2)).setStateAndDescription(idArgumentCaptor.capture(),
+                stateArgumentCaptor.capture(), descArgumentCaptor.capture());
+
+        List<String> capturedPipelineExeIds = idArgumentCaptor.getAllValues();
+        List<String> capturedPipelineExeStates = stateArgumentCaptor.getAllValues();
+
+        AssertionsForClassTypes.assertThat(capturedPipelineExeIds.get(1)).isEqualTo(pipelineExecutionTestId);
+        AssertionsForClassTypes.assertThat(capturedPipelineExeStates.get(1)).isEqualTo(pipelineExecutionTest.getState());
     }
 
     @Test
-    void willThrowWhenYamlOfConnectorIsNotCorrect() throws APIPYamlParsingException, APIPStepExecutionFailedException {
+    void willThrowWhenYamlOfConnectorIsNotCorrect() throws APIPStepExecutionFailedException, APIPYamlParsingException {
         String pipelineId = "pipeTest";
         String pipelineExecutionTestId = "pipeExeTest";
 
@@ -452,7 +452,7 @@ class WorkflowServiceTest {
 
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
-                pipelineId, dateTime,"prepared", stepsBefore, outputAfterFirstStep, 0);
+                pipelineId, dateTime,"prepared", "Execution of pipeline is prepared!",  stepsBefore, outputAfterFirstStep, 0);
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
         given(stateService.checkState(any())).willReturn("running");
@@ -461,12 +461,84 @@ class WorkflowServiceTest {
                 stepsAfter.get(0));
 
         pipelineExecutionTest.setState("running");
-        given(stateService.setState(eq(pipelineExecutionTestId), eq("running"))).willReturn(pipelineExecutionTest);
 
         given(executionService.executeStep(any())).willThrow(APIPYamlParsingException.class);
 
+        pipelineExecutionTest.setState("failed");
+
         assertThatThrownBy(() -> underTest.executePipelineSteps(pipelineExecutionTestId))
-                .isInstanceOf(APIPYamlParsingException.class);
+                .isInstanceOf(APIPPipelineExecutionFailedException.class);
+
+        ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> stateArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> descArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(stateService, times(2)).setStateAndDescription(idArgumentCaptor.capture(),
+                stateArgumentCaptor.capture(), descArgumentCaptor.capture());
+
+        List<String> capturedPipelineExeIds = idArgumentCaptor.getAllValues();
+        List<String> capturedPipelineExeStates = stateArgumentCaptor.getAllValues();
+
+        AssertionsForClassTypes.assertThat(capturedPipelineExeIds.get(1))
+                .isEqualTo(pipelineExecutionTestId);
+        AssertionsForClassTypes.assertThat(capturedPipelineExeStates.get(1))
+                .isEqualTo(pipelineExecutionTest.getState());
+    }
+
+    @Test
+    void willThrowWhenExpressionResolverErrorOccurs() throws APIPStepExecutionFailedException, APIPYamlParsingException {
+        String pipelineId = "pipeTest";
+        String pipelineExecutionTestId = "pipeExeTest";
+
+        HashMap<String, String> outputAfterFirstStep = new HashMap<>();
+        outputAfterFirstStep.put("step1", "step1-test-output");
+
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        List<StepParameters> stepsBefore = new ArrayList<>();
+        List<StepParameters> stepsAfter = new ArrayList<>();
+        StepParameters stepParameters = new StepParameters("step1", "API_GET",
+                new SpecGet("https://some-url",
+                        "connID",
+                        "#{#jsonPath(output.step1, '$.msg')}"),
+                2, 3000);
+        StepParameters resolvedStepParameter = new StepParameters("step1", "API_GET",
+                new SpecGet("https://some-url",
+                        "connID",
+                        "step1-test-output"),
+                2, 3000);
+        stepsBefore.add(stepParameters);
+        stepsAfter.add(resolvedStepParameter);
+
+
+        PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineExecutionTestId,
+                pipelineId, dateTime,"prepared", "Execution of pipeline is prepared!",  stepsBefore, outputAfterFirstStep, 0);
+
+        given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
+        given(stateService.checkState(any())).willReturn("running");
+        given(expressionResolverService.getPipelineExecutionOutput(any())).willReturn(outputAfterFirstStep);
+        given(expressionResolverService.resolveStep(any(),any(),anyBoolean())).
+                willThrow(APIPExpressionResolverException.class);
+
+        pipelineExecutionTest.setState("failed");
+
+        assertThatThrownBy(() -> underTest.executePipelineSteps(pipelineExecutionTestId))
+                .isInstanceOf(APIPPipelineExecutionFailedException.class);
+
+        ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> stateArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> descArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(stateService, times(2)).setStateAndDescription(idArgumentCaptor.capture(),
+                stateArgumentCaptor.capture(), descArgumentCaptor.capture());
+
+        List<String> capturedPipelineExeIds = idArgumentCaptor.getAllValues();
+        List<String> capturedPipelineExeStates = stateArgumentCaptor.getAllValues();
+
+        AssertionsForClassTypes.assertThat(capturedPipelineExeIds.get(1))
+                .isEqualTo(pipelineExecutionTestId);
+        AssertionsForClassTypes.assertThat(capturedPipelineExeStates.get(1))
+                .isEqualTo(pipelineExecutionTest.getState());
     }
 
     @Test
@@ -497,7 +569,7 @@ class WorkflowServiceTest {
         LocalDateTime dateTime = LocalDateTime.now();
 
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection(pipelineId, dateTime,
-                state, steps, output, 0);
+                state, "Execution of pipeline is paused!", steps, output, 0);
         String pipelineExecutionTestId = pipelineExecutionTest.getId();
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));

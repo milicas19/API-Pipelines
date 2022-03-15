@@ -1,7 +1,7 @@
 package com.example.projectfirst.security;
 
-import com.example.projectfirst.security.exceptions.APIPBadCredentialsException;
-import com.example.projectfirst.security.exceptions.APIPUserAlreadyExists;
+import com.example.projectfirst.exceptions.APIPBadCredentialsException;
+import com.example.projectfirst.exceptions.APIPUserAlreadyExists;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

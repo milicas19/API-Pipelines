@@ -1,8 +1,8 @@
 package com.example.projectfirst.pipeline;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
-import com.example.projectfirst.pipeline.exception.APIPPipelineAlreadyExistsException;
-import com.example.projectfirst.pipeline.exception.APIPPipelineNotFoundException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPPipelineAlreadyExistsException;
+import com.example.projectfirst.exceptions.APIPPipelineNotFoundException;
 import com.example.projectfirst.pipeline.model.Pipeline;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

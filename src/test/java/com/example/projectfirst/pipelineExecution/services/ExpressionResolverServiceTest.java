@@ -1,12 +1,12 @@
 package com.example.projectfirst.pipelineExecution.services;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.apiRequestHandler.SpecPost;
 import com.example.projectfirst.pipeline.model.StepParameters;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionCollection;
 import com.example.projectfirst.pipelineExecution.PipelineExecutionRepository;
-import com.example.projectfirst.pipelineExecution.exception.APIPExpressionResolverException;
-import com.example.projectfirst.pipelineExecution.exception.APIPPipelineExecutionNotFoundException;
+import com.example.projectfirst.exceptions.APIPExpressionResolverException;
+import com.example.projectfirst.exceptions.APIPPipelineExecutionNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,7 +80,7 @@ class ExpressionResolverServiceTest {
     @Test
     void canGetPipelineExecutionOutput() {
         PipelineExecutionCollection pipelineExecutionTest = new PipelineExecutionCollection("pipeTest",
-                LocalDateTime.now(), "prepared", new ArrayList<>(), new HashMap<>(), 0);
+                LocalDateTime.now(), "prepared", "Execution of pipeline is prepared!", new ArrayList<>(), new HashMap<>(), 0);
 
         given(pipelineExecutionRepository.findById(any())).willReturn(Optional.of(pipelineExecutionTest));
 

@@ -1,11 +1,12 @@
 package com.example.projectfirst.pipelineExecution.services;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPConnectorNotFoundException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import com.example.projectfirst.pipeline.apiRequestHandler.StepHandler;
 import com.example.projectfirst.pipeline.model.StepParameters;
 import com.example.projectfirst.pipeline.registrar.StepRegistrar;
 import com.example.projectfirst.pipelineExecution.StepExecution;
-import com.example.projectfirst.pipelineExecution.exception.APIPStepExecutionFailedException;
+import com.example.projectfirst.exceptions.APIPStepExecutionFailedException;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
@@ -31,7 +32,7 @@ public class ExecutionService {
 
     @PostConstruct
     public void init()  {
-        log.info("init() of ExecutionService!");
+        log.info("init() of ExecutionService");
         Instant start = Instant.now();
         Reflections reflections =  new Reflections(
                 new ConfigurationBuilder()
@@ -64,13 +65,12 @@ public class ExecutionService {
     }
 
     public StepExecution executeStep(StepParameters stepParameters)
-            throws APIPYamlParsingException, APIPStepExecutionFailedException {
+            throws APIPYamlParsingException, APIPStepExecutionFailedException, APIPConnectorNotFoundException {
 
         try {
             log.info("Executing " + stepParameters.getName() + "!");
             return this.stepHandlerMap.get(stepParameters.getType()).execute(stepParameters);
         }catch (APIPYamlParsingException ex){
-            log.error("Failed to execute step! Failed to read yml file of connector! Message: " + ex.getMessage());
             throw new APIPYamlParsingException("Error while parsing connector from yaml input!");
         }
     }

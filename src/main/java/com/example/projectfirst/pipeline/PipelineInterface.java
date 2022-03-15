@@ -1,6 +1,6 @@
 package com.example.projectfirst.pipeline;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
+import com.example.projectfirst.exceptions.APIPYamlParsingException;
 import java.util.List;
 
 public interface PipelineInterface {

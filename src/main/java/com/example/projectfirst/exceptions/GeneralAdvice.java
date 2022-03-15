@@ -1,4 +1,4 @@
-package com.example.projectfirst.connector.exception;
+package com.example.projectfirst.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

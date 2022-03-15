@@ -1,6 +1,4 @@
-package com.example.projectfirst.security.exceptions;
-
-import com.example.projectfirst.connector.exception.APIPGeneralException;
+package com.example.projectfirst.exceptions;
 
 public class APIPUserAlreadyExists extends APIPGeneralException {
     public APIPUserAlreadyExists(String msg){

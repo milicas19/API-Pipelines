@@ -1,4 +1,4 @@
-package com.example.projectfirst.connector.exception;
+package com.example.projectfirst.exceptions;
 
 import java.io.IOException;
 

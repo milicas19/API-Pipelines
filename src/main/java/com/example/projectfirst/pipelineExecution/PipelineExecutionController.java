@@ -1,8 +1,9 @@
 package com.example.projectfirst.pipelineExecution;
 
-import com.example.projectfirst.connector.exception.APIPYamlParsingException;
-import com.example.projectfirst.pipelineExecution.exception.APIPRetryMechanismException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
+@Slf4j
 public class PipelineExecutionController {
     @Autowired
     private PipelineExecutionService pipelineExecutionService;
@@ -27,22 +29,18 @@ public class PipelineExecutionController {
     }
 
     @GetMapping("/executions/paused")
-    public List<PipelineExecutionCollection> getPausedExecutions(){
+    public List<PipelineExecutionCollection> getPausedExecutions() {
         return pipelineExecutionService.fetchPausedExecutions();
     }
 
     @PostMapping("/execute/{id}")
-    public PipelineExecutionCollection executePipeline(@PathVariable(value="id") String id)
-            throws APIPYamlParsingException, APIPRetryMechanismException {
-
-        return pipelineExecutionService.executePipeline(id);
+    public ResponseEntity<String> executePipeline(@PathVariable(value="id") String id) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(pipelineExecutionService.executePipeline(id));
     }
 
     @PutMapping("/resume/{id}")
-    public PipelineExecutionCollection resumeExecution(@PathVariable(value="id") String id)
-            throws APIPYamlParsingException, APIPRetryMechanismException{
-
-        return pipelineExecutionService.resumeExecution(id);
+    public ResponseEntity<String> resumeExecution(@PathVariable(value="id") String id) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(pipelineExecutionService.resumeExecution(id));
     }
 
     @DeleteMapping("/executions/{id}")
